@@ -14,31 +14,35 @@ class ReportScreen extends ConsumerWidget {
     final analysis = ref.watch(analysisProvider);
     final result = analysis.currentResult;
     final feedback = analysis.feedback;
+    final isDarkMode = ref.watch(settingsProvider).isDarkMode;
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.primaryBg,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.darkGradient),
+        decoration: BoxDecoration(
+          gradient: isDarkMode ? AppColors.darkGradient : AppColors.lightGradient,
+        ),
         child: SafeArea(
           child: result == null
-              ? _buildNoDataState(context)
+              ? _buildNoDataState(context, isDarkMode)
               : SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 16),
-                      _buildHeader(context),
+                      _buildHeader(context, isDarkMode),
                       const SizedBox(height: 24),
-                      _buildScoreSection(result),
+                      _buildScoreSection(result, isDarkMode),
                       const SizedBox(height: 20),
-                      _buildDetailCards(result),
+                      _buildDetailCards(result, isDarkMode),
                       const SizedBox(height: 20),
-                      _buildInputPreview(result),
+                      _buildInputPreview(result, isDarkMode),
                       const SizedBox(height: 20),
-                      if (feedback.isNotEmpty) _buildFeedbackSection(feedback),
+                      if (feedback.isNotEmpty) _buildFeedbackSection(feedback, isDarkMode),
                       const SizedBox(height: 20),
-                      _buildKeywords(result),
+                      _buildKeywords(result, isDarkMode),
                       const SizedBox(height: 100),
                     ],
                   ),
@@ -48,25 +52,28 @@ class ReportScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildNoDataState(BuildContext context) {
+  Widget _buildNoDataState(BuildContext context, bool isDarkMode) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Text('📊', style: TextStyle(fontSize: 60)),
           const SizedBox(height: 20),
-          const Text(
+          Text(
             'No Analysis Yet',
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+              color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Record your thoughts first to see your report',
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 15),
+            style: TextStyle(
+              fontSize: 15,
+              color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark,
+            ),
           ),
           const SizedBox(height: 24),
           ElevatedButton(
@@ -78,7 +85,7 @@ class ReportScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, bool isDarkMode) {
     return Row(
       children: [
         GestureDetector(
@@ -87,37 +94,43 @@ class ReportScreen extends ConsumerWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: AppColors.glassWhite,
+              color: isDarkMode ? AppColors.glassWhite : Colors.white,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.glassBorder),
+              border: Border.all(color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
+              boxShadow: isDarkMode ? null : [
+                BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)
+              ],
             ),
-            child: const Icon(
+            child: Icon(
               Icons.arrow_back_rounded,
-              color: AppColors.textPrimary,
+              color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark,
               size: 20,
             ),
           ),
         ),
         const SizedBox(width: 14),
-        const Expanded(
+        Expanded(
           child: Text(
             'Analysis Report',
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+              color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark,
             ),
           ),
         ),
         Text(
           DateFormat('MMM d, HH:mm').format(DateTime.now()),
-          style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+          style: TextStyle(
+            fontSize: 13, 
+            color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildScoreSection(AnalysisResult result) {
+  Widget _buildScoreSection(AnalysisResult result, bool isDarkMode) {
     Color scoreColor;
     String emoji;
     if (result.positivityScore >= 70) {
@@ -140,11 +153,18 @@ class ReportScreen extends ConsumerWidget {
           end: Alignment.bottomRight,
           colors: [
             scoreColor.withValues(alpha: 0.15),
-            AppColors.cardBg,
+            isDarkMode ? AppColors.cardBg : Colors.white,
           ],
         ),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: scoreColor.withValues(alpha: 0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: scoreColor.withValues(alpha: isDarkMode ? 0.1 : 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -167,7 +187,7 @@ class ReportScreen extends ConsumerWidget {
             'Positivity Score',
             style: TextStyle(
               fontSize: 16,
-              color: AppColors.textSecondary,
+              color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark,
             ),
           ),
         ],
@@ -175,7 +195,7 @@ class ReportScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildDetailCards(AnalysisResult result) {
+  Widget _buildDetailCards(AnalysisResult result, bool isDarkMode) {
     return Row(
       children: [
         Expanded(
@@ -184,6 +204,7 @@ class ReportScreen extends ConsumerWidget {
             result.sentiment.toUpperCase(),
             _sentimentIcon(result.sentiment),
             _sentimentColor(result.sentiment),
+            isDarkMode,
           ),
         ),
         const SizedBox(width: 12),
@@ -193,6 +214,7 @@ class ReportScreen extends ConsumerWidget {
             result.tone.toUpperCase(),
             _toneIcon(result.tone),
             AppColors.secondaryAccent,
+            isDarkMode,
           ),
         ),
         const SizedBox(width: 12),
@@ -204,19 +226,23 @@ class ReportScreen extends ConsumerWidget {
                 ? Icons.mic_rounded
                 : Icons.edit_rounded,
             AppColors.highlight,
+            isDarkMode,
           ),
         ),
       ],
     );
   }
 
-  Widget _detailCard(String label, String value, IconData icon, Color color) {
+  Widget _detailCard(String label, String value, IconData icon, Color color, bool isDarkMode) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.glassWhite,
+        color: isDarkMode ? AppColors.glassWhite : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.glassBorder),
+        border: Border.all(color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
+        boxShadow: isDarkMode ? null : [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)
+        ],
       ),
       child: Column(
         children: [
@@ -233,21 +259,29 @@ class ReportScreen extends ConsumerWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
-          Text(label,
-              style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11, 
+              color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildInputPreview(AnalysisResult result) {
+  Widget _buildInputPreview(AnalysisResult result, bool isDarkMode) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.glassWhite,
+        color: isDarkMode ? AppColors.glassWhite : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.glassBorder),
+        border: Border.all(color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
+        boxShadow: isDarkMode ? null : [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8)
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -255,14 +289,14 @@ class ReportScreen extends ConsumerWidget {
           Row(
             children: [
               Icon(Icons.format_quote_rounded,
-                  color: AppColors.secondaryAccent, size: 20),
+                  color: AppColors.secondaryAccent.withValues(alpha: 0.7), size: 20),
               const SizedBox(width: 8),
-              const Text(
+              Text(
                 'Your Input',
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+                  color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark,
                 ),
               ),
             ],
@@ -272,7 +306,7 @@ class ReportScreen extends ConsumerWidget {
             result.inputText,
             style: TextStyle(
               fontSize: 14,
-              color: AppColors.textSecondary,
+              color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark,
               height: 1.6,
               fontStyle: FontStyle.italic,
             ),
@@ -282,31 +316,31 @@ class ReportScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildFeedbackSection(List<FeedbackItem> feedback) {
+  Widget _buildFeedbackSection(List<FeedbackItem> feedback, bool isDarkMode) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Row(
+        Row(
           children: [
-            Text('💡', style: TextStyle(fontSize: 18)),
-            SizedBox(width: 8),
+            const Text('💡', style: TextStyle(fontSize: 18)),
+            const SizedBox(width: 8),
             Text(
               'Smart Feedback',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+                color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark,
               ),
             ),
           ],
         ),
         const SizedBox(height: 14),
-        ...feedback.map((item) => _feedbackCard(item)),
+        ...feedback.map((item) => _feedbackCard(item, isDarkMode)),
       ],
     );
   }
 
-  Widget _feedbackCard(FeedbackItem item) {
+  Widget _feedbackCard(FeedbackItem item, bool isDarkMode) {
     Color cardColor;
     switch (item.type) {
       case 'breathing':
@@ -332,11 +366,14 @@ class ReportScreen extends ConsumerWidget {
           end: Alignment.bottomRight,
           colors: [
             cardColor.withValues(alpha: 0.1),
-            AppColors.glassWhite,
+            isDarkMode ? AppColors.glassWhite : Colors.white,
           ],
         ),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: cardColor.withValues(alpha: 0.2)),
+        boxShadow: isDarkMode ? null : [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8)
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -362,7 +399,7 @@ class ReportScreen extends ConsumerWidget {
             item.description,
             style: TextStyle(
               fontSize: 14,
-              color: AppColors.textSecondary,
+              color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark,
               height: 1.5,
             ),
           ),
@@ -396,7 +433,7 @@ class ReportScreen extends ConsumerWidget {
                       item.hadith!,
                       style: TextStyle(
                         fontSize: 13,
-                        color: AppColors.textSecondary,
+                        color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark,
                         height: 1.5,
                       ),
                     ),
@@ -410,26 +447,29 @@ class ReportScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildKeywords(AnalysisResult result) {
+  Widget _buildKeywords(AnalysisResult result, bool isDarkMode) {
     if (result.keywords.isEmpty) return const SizedBox.shrink();
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.glassWhite,
+        color: isDarkMode ? AppColors.glassWhite : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.glassBorder),
+        border: Border.all(color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
+        boxShadow: isDarkMode ? null : [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8)
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Detected Keywords',
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+              color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark,
             ),
           ),
           const SizedBox(height: 12),

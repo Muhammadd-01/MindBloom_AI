@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/providers/providers.dart';
 
@@ -42,6 +43,40 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       );
       Navigator.pop(context);
     }
+  }
+
+  void _showImageSourcePicker(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.secondaryBg,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library_rounded, color: AppColors.primaryAccent),
+              title: const Text('Choose from Gallery', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(ctx);
+                ref.read(authStateProvider.notifier).uploadProfileImage(ImageSource.gallery);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt_rounded, color: AppColors.primaryAccent),
+              title: const Text('Take a Photo', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(ctx);
+                ref.read(authStateProvider.notifier).uploadProfileImage(ImageSource.camera);
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -93,43 +128,56 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // Profile Photo Section
-              Stack(
-                alignment: Alignment.bottomRight,
-                children: [
-                  Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.primaryAccent, width: 2),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primaryAccent.withValues(alpha: 0.2),
-                          blurRadius: 20,
-                          spreadRadius: 5,
+              GestureDetector(
+                onTap: isLoading ? null : () => _showImageSourcePicker(context),
+                child: Stack(
+                  alignment: Alignment.bottomRight,
+                  children: [
+                    Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.primaryAccent, width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primaryAccent.withValues(alpha: 0.2),
+                            blurRadius: 20,
+                            spreadRadius: 5,
+                          ),
+                        ],
+                      ),
+                      child: ClipOval(
+                        child: user?.photoUrl.isNotEmpty == true
+                            ? Image.network(
+                                user!.photoUrl,
+                                width: 120,
+                                height: 120,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => const Icon(Icons.person, size: 60, color: Colors.white54),
+                                loadingBuilder: (context, child, loadingProgress) {
+                                  if (loadingProgress == null) return child;
+                                  return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+                                },
+                              )
+                            : const Icon(Icons.person, size: 60, color: Colors.white54),
+                      ),
+                    ),
+                    if (isLoading)
+                      const Positioned.fill(
+                        child: Center(child: CircularProgressIndicator(strokeWidth: 3)),
+                      )
+                    else
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: const BoxDecoration(
+                          color: AppColors.primaryAccent,
+                          shape: BoxShape.circle,
                         ),
-                      ],
-                    ),
-                    child: CircleAvatar(
-                      radius: 58,
-                      backgroundColor: AppColors.cardBg,
-                      backgroundImage: user?.photoUrl.isNotEmpty == true
-                          ? NetworkImage(user!.photoUrl)
-                          : null,
-                      child: user?.photoUrl.isEmpty == true
-                          ? const Icon(Icons.person, size: 60, color: Colors.white54)
-                          : null,
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: const BoxDecoration(
-                      color: AppColors.primaryAccent,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.camera_alt, size: 20, color: Colors.black),
-                  ),
-                ],
+                        child: const Icon(Icons.camera_alt, size: 20, color: Colors.black),
+                      ),
+                  ],
+                ),
               ),
               const SizedBox(height: 32),
 
@@ -144,7 +192,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 label: 'Email',
                 controller: _emailController,
                 icon: Icons.email_outlined,
-                enabled: false, // Email usually handled by Auth
+                enabled: false,
               ),
               const SizedBox(height: 40),
 

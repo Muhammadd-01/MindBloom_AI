@@ -1,4 +1,4 @@
-// Data models for the Positive Attitude Creator app
+// Data models for the MindBloom AI app
 
 // ── User Model ──
 class UserModel {
@@ -84,6 +84,7 @@ class AnalysisResult {
   final String sentiment; // 'positive', 'neutral', 'negative'
   final String tone; // 'calm', 'stress', 'anger', 'motivation', 'joy', 'sadness'
   final List<String> keywords;
+  final String? imageUrl;
   final DateTime analyzedAt;
 
   const AnalysisResult({
@@ -95,8 +96,35 @@ class AnalysisResult {
     required this.sentiment,
     required this.tone,
     this.keywords = const [],
+    this.imageUrl,
     required this.analyzedAt,
   });
+
+  AnalysisResult copyWith({
+    String? id,
+    String? userId,
+    String? inputText,
+    String? inputType,
+    int? positivityScore,
+    String? sentiment,
+    String? tone,
+    List<String>? keywords,
+    String? imageUrl,
+    DateTime? analyzedAt,
+  }) {
+    return AnalysisResult(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      inputText: inputText ?? this.inputText,
+      inputType: inputType ?? this.inputType,
+      positivityScore: positivityScore ?? this.positivityScore,
+      sentiment: sentiment ?? this.sentiment,
+      tone: tone ?? this.tone,
+      keywords: keywords ?? this.keywords,
+      imageUrl: imageUrl ?? this.imageUrl,
+      analyzedAt: analyzedAt ?? this.analyzedAt,
+    );
+  }
 
   Map<String, dynamic> toMap() => {
     'id': id,
@@ -107,6 +135,7 @@ class AnalysisResult {
     'sentiment': sentiment,
     'tone': tone,
     'keywords': keywords,
+    'imageUrl': imageUrl,
     'analyzedAt': analyzedAt.toIso8601String(),
   };
 
@@ -119,6 +148,7 @@ class AnalysisResult {
     sentiment: map['sentiment'] ?? 'neutral',
     tone: map['tone'] ?? 'calm',
     keywords: List<String>.from(map['keywords'] ?? []),
+    imageUrl: map['imageUrl'],
     analyzedAt: DateTime.parse(map['analyzedAt']),
   );
 }

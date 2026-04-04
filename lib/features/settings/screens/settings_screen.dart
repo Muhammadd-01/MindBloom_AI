@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/providers/providers.dart';
+import '../../../core/widgets/loading_overlay.dart';
 import '../../auth/screens/auth_screen.dart';
 import '../widgets/chatbot_sheet.dart';
 import 'edit_profile_screen.dart';
@@ -12,217 +13,241 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(authStateProvider).user;
     final settings = ref.watch(settingsProvider);
+    final user = ref.watch(authStateProvider).user;
+    final isDarkMode = settings.isDarkMode;
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.primaryBg,
-      body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.darkGradient),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 16),
-                const Text(
-                  'Settings',
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // Profile Card
-                _buildProfileCard(context, user),
-
-                const SizedBox(height: 24),
-
-                // Profile Settings Section
-                _buildSection('Profile Settings', [
-                  _settingsAction(
-                    'Edit Profile',
-                    'Update name and profile photo',
-                    Icons.person_outline_rounded,
-                    AppColors.primaryAccent,
-                    () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const EditProfileScreen()),
-                    ),
-                  ),
-                  _settingsAction(
-                    'Account Security',
-                    'Password and authentication',
-                    Icons.security_rounded,
-                    AppColors.secondaryAccent,
-                    () => _showSnackBar(context, 'Security settings coming soon'),
-                  ),
-                ]),
-
-                const SizedBox(height: 20),
-
-                // AI Coach Card
-                _buildCoachCard(context),
-
-                const SizedBox(height: 20),
-
-                // Premium Card
-                if (!settings.isPremium) _buildPremiumCard(ref),
-                if (!settings.isPremium) const SizedBox(height: 20),
-
-                // Privacy & Permissions
-                _buildSection('Privacy & Permissions', [
-                  _settingsToggle(
-                    'Behavior Tracking',
-                    'Allow app to analyze your inputs',
-                    Icons.track_changes_rounded,
-                    settings.trackingEnabled,
-                    () => ref.read(settingsProvider.notifier).toggleTracking(),
-                  ),
-                  _settingsToggle(
-                    'Notifications',
-                    'Daily reminders and insights',
-                    Icons.notifications_none_rounded,
-                    settings.notificationsEnabled,
-                    () => ref.read(settingsProvider.notifier).toggleNotifications(),
-                  ),
-                  _settingsToggle(
-                    'Islamic Content',
-                    'Show Quran verses and Hadith',
-                    Icons.auto_stories_rounded,
-                    settings.islamicContentEnabled,
-                    () => ref.read(settingsProvider.notifier).toggleIslamicContent(),
-                  ),
-                ]),
-
-                const SizedBox(height: 20),
-
-                // Data Management
-                _buildSection('Data Management', [
-                  _settingsAction(
-                    'Export My Data',
-                    'Download all your data',
-                    Icons.download_rounded,
-                    AppColors.secondaryAccent,
-                    () => _showSnackBar(context, 'Data export started...'),
-                  ),
-                  _settingsAction(
-                    'Delete All Data',
-                    'Permanently remove all your data',
-                    Icons.delete_forever_rounded,
-                    AppColors.negative,
-                    () => _showDeleteConfirm(context),
-                  ),
-                ]),
-
-                const SizedBox(height: 20),
-
-                // Display Settings
-                _buildSection('Display', [
-                  _settingsAction(
-                    'App Theme',
-                    'Dark (Default)',
-                    Icons.dark_mode_rounded,
-                    AppColors.primaryAccent,
-                    () => _showSnackBar(context, 'Theme selection coming soon'),
-                  ),
-                  _settingsAction(
-                    'Language',
-                    'English',
-                    Icons.language_rounded,
-                    AppColors.secondaryAccent,
-                    () => _showSnackBar(context, 'Language support coming soon'),
-                  ),
-                ]),
-
-                const SizedBox(height: 20),
-
-                // About
-                _buildSection('About', [
-                  _settingsAction(
-                    'Privacy Policy',
-                    'How we handle your data',
-                    Icons.policy_rounded,
-                    AppColors.textSecondary,
-                    () {},
-                  ),
-                  _settingsAction(
-                    'Terms of Service',
-                    'App usage terms',
-                    Icons.description_rounded,
-                    AppColors.textSecondary,
-                    () {},
-                  ),
-                  _settingsAction(
-                    'App Version',
-                    'v1.0.0 (Build 1)',
-                    Icons.info_outline_rounded,
-                    AppColors.textSecondary,
-                    () {},
-                  ),
-                ]),
-
-                const SizedBox(height: 20),
-
-                // Logout
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: OutlinedButton(
-                    onPressed: () {
-                      ref.read(authStateProvider.notifier).logout();
-                      Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(builder: (_) => const AuthScreen()),
-                        (route) => false,
-                      );
-                    },
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: AppColors.negative),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      body: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              gradient: isDarkMode ? AppColors.darkGradient : AppColors.lightGradient,
+            ),
+            child: SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 16),
+                    Text(
+                      'Settings',
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark,
                       ),
                     ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.logout_rounded, color: AppColors.negative, size: 20),
-                        SizedBox(width: 10),
-                        Text(
-                          'Logout',
-                          style: TextStyle(
-                            color: AppColors.negative,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+
+                    const SizedBox(height: 24),
+
+                    // Profile Card
+                    _buildProfileCard(context, user, isDarkMode),
+
+                    const SizedBox(height: 24),
+
+                    // Profile Settings Section
+                    _buildSection('Profile Settings', [
+                      _settingsAction(
+                        'Edit Profile',
+                        'Update name and profile photo',
+                        Icons.person_outline_rounded,
+                        AppColors.primaryAccent,
+                        isDarkMode,
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+                        ),
+                      ),
+                      _settingsAction(
+                        'Account Security',
+                        'Password and authentication',
+                        Icons.security_rounded,
+                        AppColors.secondaryAccent,
+                        isDarkMode,
+                        () => _showSnackBar(context, 'Security settings coming soon'),
+                      ),
+                    ], isDarkMode),
+
+                    const SizedBox(height: 20),
+
+                    // AI Coach Card
+                    _buildCoachCard(context, isDarkMode),
+
+                    const SizedBox(height: 20),
+
+                    // Premium Card
+                    if (!settings.isPremium) _buildPremiumCard(ref, isDarkMode),
+                    if (!settings.isPremium) const SizedBox(height: 20),
+
+                    // Privacy & Permissions
+                    _buildSection('Privacy & Permissions', [
+                      _settingsToggle(
+                        'Behavior Tracking',
+                        'Allow app to analyze your inputs',
+                        Icons.track_changes_rounded,
+                        settings.trackingEnabled,
+                        isDarkMode,
+                        () => ref.read(settingsProvider.notifier).toggleTracking(),
+                      ),
+                      _settingsToggle(
+                        'Notifications',
+                        'Daily reminders and insights',
+                        Icons.notifications_none_rounded,
+                        settings.notificationsEnabled,
+                        isDarkMode,
+                        () => ref.read(settingsProvider.notifier).toggleNotifications(),
+                      ),
+                      _settingsToggle(
+                        'Islamic Content',
+                        'Show Quran verses and Hadith',
+                        Icons.auto_stories_rounded,
+                        settings.islamicContentEnabled,
+                        isDarkMode,
+                        () => ref.read(settingsProvider.notifier).toggleIslamicContent(),
+                      ),
+                    ], isDarkMode),
+
+                    const SizedBox(height: 20),
+
+                    // Display Settings
+                    _buildSection('Display', [
+                      _settingsToggle(
+                        'Dark Mode',
+                        isDarkMode ? 'Dark theme active' : 'Light theme active',
+                        isDarkMode ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+                        isDarkMode,
+                        isDarkMode,
+                        () => ref.read(settingsProvider.notifier).toggleTheme(),
+                      ),
+                      _settingsAction(
+                        'Language',
+                        'English',
+                        Icons.language_rounded,
+                        AppColors.secondaryAccent,
+                        isDarkMode,
+                        () => _showSnackBar(context, 'Language support coming soon'),
+                      ),
+                    ], isDarkMode),
+
+                    const SizedBox(height: 20),
+
+                    // Data Management
+                    _buildSection('Data Management', [
+                      _settingsAction(
+                        'Export My Data',
+                        'Download all your data',
+                        Icons.download_rounded,
+                        AppColors.secondaryAccent,
+                        isDarkMode,
+                        () => _showSnackBar(context, 'Data export started...'),
+                      ),
+                      _settingsAction(
+                        'Delete All Data',
+                        'Permanently remove all your data',
+                        Icons.delete_forever_rounded,
+                        AppColors.negative,
+                        isDarkMode,
+                        () => _showDeleteConfirm(context, isDarkMode),
+                      ),
+                    ], isDarkMode),
+
+                    const SizedBox(height: 20),
+
+                    // About
+                    _buildSection('About', [
+                      _settingsAction(
+                        'Privacy Policy',
+                        'How we handle your data',
+                        Icons.policy_rounded,
+                        AppColors.textSecondary,
+                        isDarkMode,
+                        () {},
+                      ),
+                      _settingsAction(
+                        'Terms of Service',
+                        'App usage terms',
+                        Icons.description_rounded,
+                        AppColors.textSecondary,
+                        isDarkMode,
+                        () {},
+                      ),
+                      _settingsAction(
+                        'App Version',
+                        'v1.0.0 (Build 1)',
+                        Icons.info_outline_rounded,
+                        AppColors.textSecondary,
+                        isDarkMode,
+                        () {},
+                      ),
+                    ], isDarkMode),
+
+                    const SizedBox(height: 20),
+
+                    // Logout
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: OutlinedButton(
+                        onPressed: () async {
+                          await ref.read(authStateProvider.notifier).logout();
+                          if (context.mounted) {
+                            Navigator.of(context).pushAndRemoveUntil(
+                              MaterialPageRoute(builder: (_) => const AuthScreen()),
+                              (route) => false,
+                            );
+                          }
+                        },
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: AppColors.negative),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                      ],
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.logout_rounded, color: AppColors.negative, size: 20),
+                            SizedBox(width: 10),
+                            Text(
+                              'Logout',
+                              style: TextStyle(
+                                color: AppColors.negative,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
-                ),
 
-                const SizedBox(height: 100),
-              ],
+                    const SizedBox(height: 100),
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
+          if (ref.watch(authStateProvider).isLoading)
+            const LoadingOverlay(message: 'Logging you out safely...'),
+        ],
       ),
     );
   }
 
-  Widget _buildProfileCard(BuildContext context, dynamic user) {
+  Widget _buildProfileCard(BuildContext context, dynamic user, bool isDarkMode) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.glassWhite,
+        color: isDarkMode ? AppColors.glassWhite : Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.glassBorder),
+        border: Border.all(color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
+            color: Colors.black.withValues(alpha: isDarkMode ? 0.2 : 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -249,10 +274,10 @@ class SettingsScreen extends ConsumerWidget {
                       user?.displayName?.isNotEmpty == true
                           ? user.displayName[0].toUpperCase()
                           : '?',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: isDarkMode ? Colors.white : AppColors.textPrimaryDark,
                       ),
                     ),
                   )
@@ -265,10 +290,10 @@ class SettingsScreen extends ConsumerWidget {
               children: [
                 Text(
                   user?.displayName ?? 'User',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -276,7 +301,7 @@ class SettingsScreen extends ConsumerWidget {
                   user?.email ?? 'user@example.com',
                   style: TextStyle(
                     fontSize: 14,
-                    color: AppColors.textSecondary,
+                    color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark,
                   ),
                 ),
               ],
@@ -295,7 +320,7 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildCoachCard(BuildContext context) {
+  Widget _buildCoachCard(BuildContext context, bool isDarkMode) {
     return GestureDetector(
       onTap: () {
         showModalBottomSheet(
@@ -313,7 +338,7 @@ class SettingsScreen extends ConsumerWidget {
             end: Alignment.bottomRight,
             colors: [
               AppColors.secondaryAccent.withValues(alpha: 0.15),
-              AppColors.glassWhite,
+              isDarkMode ? AppColors.glassWhite : Colors.white,
             ],
           ),
           borderRadius: BorderRadius.circular(20),
@@ -331,7 +356,7 @@ class SettingsScreen extends ConsumerWidget {
               child: const Icon(Icons.smart_toy_rounded, color: Colors.white, size: 26),
             ),
             const SizedBox(width: 16),
-            const Expanded(
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -340,13 +365,16 @@ class SettingsScreen extends ConsumerWidget {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+                      color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark,
                     ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
                     'Chat with your personal AI coach',
-                    style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                    style: TextStyle(
+                      fontSize: 13, 
+                      color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark
+                    ),
                   ),
                 ],
               ),
@@ -359,7 +387,7 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildPremiumCard(WidgetRef ref) {
+  Widget _buildPremiumCard(WidgetRef ref, bool isDarkMode) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -368,7 +396,7 @@ class SettingsScreen extends ConsumerWidget {
           end: Alignment.bottomRight,
           colors: [
             AppColors.highlight.withValues(alpha: 0.15),
-            AppColors.glassWhite,
+            isDarkMode ? AppColors.glassWhite : Colors.white,
           ],
         ),
         borderRadius: BorderRadius.circular(20),
@@ -381,7 +409,7 @@ class SettingsScreen extends ConsumerWidget {
             children: [
               const Text('👑', style: TextStyle(fontSize: 28)),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -390,13 +418,16 @@ class SettingsScreen extends ConsumerWidget {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
+                        color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
                       'Unlock advanced analytics & AI coaching',
-                      style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                      style: TextStyle(
+                        fontSize: 13, 
+                        color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark
+                      ),
                     ),
                   ],
                 ),
@@ -405,10 +436,10 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           // Benefits
-          _premiumBenefit('Unlimited daily insights'),
-          _premiumBenefit('Advanced analytics & trends'),
-          _premiumBenefit('AI personal coaching'),
-          _premiumBenefit('Priority support'),
+          _premiumBenefit('Unlimited daily insights', isDarkMode),
+          _premiumBenefit('Advanced analytics & trends', isDarkMode),
+          _premiumBenefit('AI personal coaching', isDarkMode),
+          _premiumBenefit('Priority support', isDarkMode),
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
@@ -433,41 +464,44 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _premiumBenefit(String text) {
+  Widget _premiumBenefit(String text, bool isDarkMode) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          Icon(Icons.check_circle_rounded,
+          const Icon(Icons.check_circle_rounded,
               color: AppColors.highlight, size: 18),
           const SizedBox(width: 10),
           Text(
             text,
-            style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
+            style: TextStyle(
+              fontSize: 14, 
+              color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSection(String title, List<Widget> children) {
+  Widget _buildSection(String title, List<Widget> children, bool isDarkMode) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark,
           ),
         ),
         const SizedBox(height: 12),
         Container(
           decoration: BoxDecoration(
-            color: AppColors.glassWhite,
+            color: isDarkMode ? AppColors.glassWhite : Colors.white,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.glassBorder),
+            border: Border.all(color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
           ),
           child: Column(children: children),
         ),
@@ -480,13 +514,14 @@ class SettingsScreen extends ConsumerWidget {
     String subtitle,
     IconData icon,
     bool value,
+    bool isDarkMode,
     VoidCallback onToggle,
   ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          Icon(icon, color: AppColors.textSecondary, size: 22),
+          Icon(icon, color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark, size: 22),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -494,14 +529,17 @@ class SettingsScreen extends ConsumerWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
-                    color: AppColors.textPrimary,
+                    color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark,
                   ),
                 ),
                 Text(
                   subtitle,
-                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  style: TextStyle(
+                    fontSize: 12, 
+                    color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark
+                  ),
                 ),
               ],
             ),
@@ -511,7 +549,7 @@ class SettingsScreen extends ConsumerWidget {
             onChanged: (_) => onToggle(),
             activeTrackColor: AppColors.primaryAccent.withValues(alpha: 0.3),
             activeThumbColor: AppColors.primaryAccent,
-            inactiveTrackColor: AppColors.cardBgLight,
+            inactiveTrackColor: isDarkMode ? AppColors.cardBgLight : AppColors.cardBgLightGray,
           ),
         ],
       ),
@@ -523,6 +561,7 @@ class SettingsScreen extends ConsumerWidget {
     String subtitle,
     IconData icon,
     Color color,
+    bool isDarkMode,
     VoidCallback onTap,
   ) {
     return InkWell(
@@ -540,11 +579,17 @@ class SettingsScreen extends ConsumerWidget {
                 children: [
                   Text(
                     title,
-                    style: TextStyle(fontSize: 15, color: AppColors.textPrimary),
+                    style: TextStyle(
+                      fontSize: 15, 
+                      color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark
+                    ),
                   ),
                   Text(
                     subtitle,
-                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    style: TextStyle(
+                      fontSize: 12, 
+                      color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark
+                    ),
                   ),
                 ],
               ),
@@ -563,34 +608,44 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  void _showDeleteConfirm(BuildContext context) {
+  void _showDeleteConfirm(BuildContext context, bool isDarkMode) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.secondaryBg,
+        backgroundColor: isDarkMode ? AppColors.secondaryBg : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
+        title: Text(
           'Delete All Data?',
-          style: TextStyle(color: AppColors.textPrimary),
+          style: TextStyle(color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark),
         ),
         content: Text(
           'This will permanently delete all your data including analyses, reports, and progress. This action cannot be undone.',
-          style: TextStyle(color: AppColors.textSecondary),
+          style: TextStyle(color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: const Text('Cancel'),
           ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              _showSnackBar(context, 'All data has been deleted');
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.negative,
+          Consumer(
+            builder: (context, ref, _) => ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(ctx);
+                _showSnackBar(context, 'Deleting all data...');
+                await ref.read(authStateProvider.notifier).deleteAllData();
+                await ref.read(authStateProvider.notifier).logout();
+                if (context.mounted) {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const AuthScreen()),
+                    (route) => false,
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.negative,
+              ),
+              child: const Text('Delete', style: TextStyle(color: Colors.white)),
             ),
-            child: const Text('Delete', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),

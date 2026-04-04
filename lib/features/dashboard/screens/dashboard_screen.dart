@@ -15,20 +15,24 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final dashboard = ref.watch(dashboardProvider);
     final user = ref.watch(authStateProvider).user;
+    final isDarkMode = ref.watch(settingsProvider).isDarkMode;
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.primaryBg,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.darkGradient),
+        decoration: BoxDecoration(
+          gradient: isDarkMode ? AppColors.darkGradient : AppColors.lightGradient,
+        ),
         child: SafeArea(
           child: dashboard.isLoading
-              ? _buildLoadingState()
+              ? _buildLoadingState(isDarkMode)
               : RefreshIndicator(
                   onRefresh: () => ref
                       .read(dashboardProvider.notifier)
                       .refresh(user?.uid ?? 'demo'),
                   color: AppColors.primaryAccent,
-                  backgroundColor: AppColors.cardBg,
+                  backgroundColor: isDarkMode ? AppColors.cardBg : Colors.white,
                   child: SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -36,17 +40,17 @@ class DashboardScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 16),
-                        _buildHeader(user),
+                        _buildHeader(user, isDarkMode),
                         const SizedBox(height: 24),
-                        _buildScoreCard(dashboard.todayReport),
+                        _buildScoreCard(dashboard.todayReport, isDarkMode),
                         const SizedBox(height: 20),
-                        _buildStreakCard(dashboard.streakInfo),
+                        _buildStreakCard(dashboard.streakInfo, isDarkMode),
                         const SizedBox(height: 20),
-                        _buildWeeklyChart(dashboard.weeklyInsights),
+                        _buildWeeklyChart(dashboard.weeklyInsights, isDarkMode),
                         const SizedBox(height: 20),
-                        _buildSuggestionsCard(dashboard.todayReport),
+                        _buildSuggestionsCard(dashboard.todayReport, isDarkMode),
                         const SizedBox(height: 20),
-                        _buildRecentActivity(context, dashboard.recentAnalyses),
+                        _buildRecentActivity(context, dashboard.recentAnalyses, isDarkMode),
                         const SizedBox(height: 100),
                       ],
                     ),
@@ -57,7 +61,7 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildLoadingState() {
+  Widget _buildLoadingState(bool isDarkMode) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -75,14 +79,16 @@ class DashboardScreen extends ConsumerWidget {
           const SizedBox(height: 16),
           Text(
             'Loading your insights...',
-            style: TextStyle(color: AppColors.textSecondary),
+            style: TextStyle(
+              color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildHeader(UserModel? user) {
+  Widget _buildHeader(UserModel? user, bool isDarkMode) {
     return Row(
       children: [
         // Avatar
@@ -113,10 +119,10 @@ class DashboardScreen extends ConsumerWidget {
             children: [
               Text(
                 'Hello, ${user?.displayName ?? 'User'}! 👋',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+                  color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark,
                 ),
               ),
               const SizedBox(height: 2),
@@ -124,7 +130,7 @@ class DashboardScreen extends ConsumerWidget {
                 DateFormat('EEEE, MMMM d').format(DateTime.now()),
                 style: TextStyle(
                   fontSize: 14,
-                  color: AppColors.textSecondary,
+                  color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark,
                 ),
               ),
             ],
@@ -135,13 +141,19 @@ class DashboardScreen extends ConsumerWidget {
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: AppColors.glassWhite,
+            color: isDarkMode ? AppColors.glassWhite : Colors.white,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.glassBorder),
+            border: Border.all(color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
+            boxShadow: isDarkMode ? null : [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+              )
+            ],
           ),
-          child: const Icon(
+          child: Icon(
             Icons.notifications_none_rounded,
-            color: AppColors.textPrimary,
+            color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark,
             size: 22,
           ),
         ),
@@ -149,7 +161,7 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildScoreCard(DailyReport? report) {
+  Widget _buildScoreCard(DailyReport? report, bool isDarkMode) {
     final score = report?.averageScore ?? 0;
     final sentiment = report?.dominantSentiment ?? 'neutral';
 
@@ -171,14 +183,14 @@ class DashboardScreen extends ConsumerWidget {
           end: Alignment.bottomRight,
           colors: [
             scoreColor.withValues(alpha: 0.15),
-            AppColors.cardBg,
+            isDarkMode ? AppColors.cardBg : Colors.white,
           ],
         ),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: scoreColor.withValues(alpha: 0.2)),
         boxShadow: [
           BoxShadow(
-            color: scoreColor.withValues(alpha: 0.1),
+            color: scoreColor.withValues(alpha: isDarkMode ? 0.1 : 0.05),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -186,11 +198,11 @@ class DashboardScreen extends ConsumerWidget {
       ),
       child: Column(
         children: [
-          const Text(
+          Text(
             "Today's Positivity Score",
             style: TextStyle(
               fontSize: 16,
-              color: AppColors.textSecondary,
+              color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark,
             ),
           ),
           const SizedBox(height: 20),
@@ -210,7 +222,7 @@ class DashboardScreen extends ConsumerWidget {
                       value: 1,
                       strokeWidth: 10,
                       strokeCap: StrokeCap.round,
-                      color: AppColors.cardBgLight,
+                      color: isDarkMode ? AppColors.cardBgLight : AppColors.cardBgLightGray,
                     ),
                   ),
                   SizedBox(
@@ -253,9 +265,9 @@ class DashboardScreen extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _miniStat('Tone', report?.dominantTone ?? '--', Icons.waves_rounded),
+              _miniStat('Tone', report?.dominantTone ?? '--', Icons.waves_rounded, isDarkMode),
               const SizedBox(width: 24),
-              _miniStat('Entries', '${report?.entriesCount ?? 0}', Icons.edit_note_rounded),
+              _miniStat('Entries', '${report?.entriesCount ?? 0}', Icons.edit_note_rounded, isDarkMode),
             ],
           ),
         ],
@@ -263,28 +275,31 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _miniStat(String label, String value, IconData icon) {
+  Widget _miniStat(String label, String value, IconData icon, bool isDarkMode) {
     return Column(
       children: [
-        Icon(icon, color: AppColors.textSecondary, size: 18),
+        Icon(icon, color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark, size: 18),
         const SizedBox(height: 4),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark,
           ),
         ),
         Text(
           label,
-          style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+          style: TextStyle(
+            fontSize: 11, 
+            color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildStreakCard(Map<String, dynamic> streakInfo) {
+  Widget _buildStreakCard(Map<String, dynamic> streakInfo, bool isDarkMode) {
     final streak = streakInfo['currentStreak'] ?? 0;
     final level = streakInfo['level'] ?? 1;
     final points = streakInfo['points'] ?? 0;
@@ -292,71 +307,86 @@ class DashboardScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.glassWhite,
+        color: isDarkMode ? AppColors.glassWhite : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.glassBorder),
+        border: Border.all(color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
+        boxShadow: isDarkMode ? null : [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+          )
+        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _streakItem('🔥', '$streak', 'Day Streak'),
+          _streakItem('🔥', '$streak', 'Day Streak', isDarkMode),
           Container(
             width: 1,
             height: 40,
-            color: AppColors.glassBorder,
+            color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark,
           ),
-          _streakItem('⭐', 'Lvl $level', 'Level'),
+          _streakItem('⭐', 'Lvl $level', 'Level', isDarkMode),
           Container(
             width: 1,
             height: 40,
-            color: AppColors.glassBorder,
+            color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark,
           ),
-          _streakItem('💎', '$points', 'Points'),
+          _streakItem('💎', '$points', 'Points', isDarkMode),
         ],
       ),
     );
   }
 
-  Widget _streakItem(String emoji, String value, String label) {
+  Widget _streakItem(String emoji, String value, String label, bool isDarkMode) {
     return Column(
       children: [
         Text(emoji, style: const TextStyle(fontSize: 24)),
         const SizedBox(height: 6),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+            color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark,
           ),
         ),
         Text(
           label,
-          style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+          style: TextStyle(
+            fontSize: 12, 
+            color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildWeeklyChart(List<InsightData> data) {
+  Widget _buildWeeklyChart(List<InsightData> data, bool isDarkMode) {
     if (data.isEmpty) return const SizedBox.shrink();
 
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.glassWhite,
+        color: isDarkMode ? AppColors.glassWhite : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.glassBorder),
+        border: Border.all(color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
+        boxShadow: isDarkMode ? null : [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+          )
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Weekly Trend',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+              color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark,
             ),
           ),
           const SizedBox(height: 20),
@@ -369,7 +399,7 @@ class DashboardScreen extends ConsumerWidget {
                   drawVerticalLine: false,
                   horizontalInterval: 25,
                   getDrawingHorizontalLine: (value) => FlLine(
-                    color: AppColors.glassBorder,
+                    color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark,
                     strokeWidth: 0.5,
                   ),
                 ),
@@ -383,7 +413,7 @@ class DashboardScreen extends ConsumerWidget {
                         '${value.toInt()}',
                         style: TextStyle(
                           fontSize: 10,
-                          color: AppColors.textSecondary,
+                          color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark,
                         ),
                       ),
                     ),
@@ -400,7 +430,7 @@ class DashboardScreen extends ConsumerWidget {
                               DateFormat('E').format(data[index].date),
                               style: TextStyle(
                                 fontSize: 10,
-                                color: AppColors.textSecondary,
+                                color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark,
                               ),
                             ),
                           );
@@ -437,7 +467,7 @@ class DashboardScreen extends ConsumerWidget {
                         radius: 4,
                         color: AppColors.primaryAccent,
                         strokeWidth: 2,
-                        strokeColor: AppColors.primaryBg,
+                        strokeColor: isDarkMode ? AppColors.primaryBg : Colors.white,
                       ),
                     ),
                     belowBarData: BarAreaData(
@@ -455,7 +485,7 @@ class DashboardScreen extends ConsumerWidget {
                 ],
                 lineTouchData: LineTouchData(
                   touchTooltipData: LineTouchTooltipData(
-                    getTooltipColor: (_) => AppColors.cardBg,
+                    getTooltipColor: (_) => isDarkMode ? AppColors.cardBg : Colors.white,
                     tooltipRoundedRadius: 12,
                     getTooltipItems: (spots) => spots.map((spot) {
                       return LineTooltipItem(
@@ -477,7 +507,7 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSuggestionsCard(DailyReport? report) {
+  Widget _buildSuggestionsCard(DailyReport? report, bool isDarkMode) {
     final suggestions = report?.suggestions ?? [];
     if (suggestions.isEmpty) return const SizedBox.shrink();
 
@@ -489,25 +519,31 @@ class DashboardScreen extends ConsumerWidget {
           end: Alignment.bottomRight,
           colors: [
             AppColors.secondaryAccent.withValues(alpha: 0.1),
-            AppColors.glassWhite,
+            isDarkMode ? AppColors.glassWhite : Colors.white,
           ],
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.secondaryAccent.withValues(alpha: 0.2)),
+        boxShadow: isDarkMode ? null : [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+          )
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.lightbulb_rounded, color: AppColors.highlight, size: 20),
+              const Icon(Icons.lightbulb_rounded, color: AppColors.highlight, size: 20),
               const SizedBox(width: 8),
-              const Text(
+              Text(
                 'AI Suggestions',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+                  color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark,
                 ),
               ),
             ],
@@ -522,7 +558,7 @@ class DashboardScreen extends ConsumerWidget {
                   width: 6,
                   height: 6,
                   margin: const EdgeInsets.only(top: 6),
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: AppColors.primaryAccent,
                     shape: BoxShape.circle,
                   ),
@@ -533,7 +569,7 @@ class DashboardScreen extends ConsumerWidget {
                     s,
                     style: TextStyle(
                       fontSize: 14,
-                      color: AppColors.textSecondary,
+                      color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark,
                       height: 1.4,
                     ),
                   ),
@@ -547,7 +583,7 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   Widget _buildRecentActivity(
-      BuildContext context, List<AnalysisResult> analyses) {
+      BuildContext context, List<AnalysisResult> analyses, bool isDarkMode) {
     if (analyses.isEmpty) return const SizedBox.shrink();
 
     return Column(
@@ -556,12 +592,12 @@ class DashboardScreen extends ConsumerWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               'Recent Activity',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark,
               ),
             ),
             GestureDetector(
@@ -569,7 +605,7 @@ class DashboardScreen extends ConsumerWidget {
                 context,
                 MaterialPageRoute(builder: (_) => const ReportScreen()),
               ),
-              child: Text(
+              child: const Text(
                 'View Report',
                 style: TextStyle(
                   fontSize: 14,
@@ -581,12 +617,12 @@ class DashboardScreen extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: 12),
-        ...analyses.take(3).map((a) => _activityTile(a)),
+        ...analyses.take(3).map((a) => _activityTile(a, isDarkMode)),
       ],
     );
   }
 
-  Widget _activityTile(AnalysisResult analysis) {
+  Widget _activityTile(AnalysisResult analysis, bool isDarkMode) {
     final isPositive = analysis.sentiment == 'positive';
     final color = isPositive ? AppColors.positive : (analysis.sentiment == 'negative' ? AppColors.negative : AppColors.highlight);
     final icon = analysis.inputType == 'voice' ? Icons.mic_rounded : Icons.edit_note_rounded;
@@ -595,9 +631,15 @@ class DashboardScreen extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.glassWhite,
+        color: isDarkMode ? AppColors.glassWhite : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.glassBorder),
+        border: Border.all(color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
+        boxShadow: isDarkMode ? null : [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+          )
+        ],
       ),
       child: Row(
         children: [
@@ -619,9 +661,9 @@ class DashboardScreen extends ConsumerWidget {
                   analysis.inputText.length > 50
                       ? '${analysis.inputText.substring(0, 50)}...'
                       : analysis.inputText,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: AppColors.textPrimary,
+                    color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -629,7 +671,10 @@ class DashboardScreen extends ConsumerWidget {
                 const SizedBox(height: 4),
                 Text(
                   '${analysis.sentiment} • ${analysis.tone} • ${DateFormat.jm().format(analysis.analyzedAt)}',
-                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  style: TextStyle(
+                    fontSize: 12, 
+                    color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark
+                  ),
                 ),
               ],
             ),

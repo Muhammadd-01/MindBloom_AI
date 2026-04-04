@@ -18,7 +18,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   int _currentPage = 0;
 
   final _pages = const [
-    _OnboardingPage(
+    _OnboardingPageData(
       icon: Icons.mic_rounded,
       iconGradient: AppColors.primaryGradient,
       title: 'Share Your Thoughts',
@@ -26,7 +26,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           'Record your voice or write in your journal. Our AI listens and understands your emotions without judgment.',
       illustration: '🎙️',
     ),
-    _OnboardingPage(
+    _OnboardingPageData(
       icon: Icons.insights_rounded,
       iconGradient: AppColors.blueGradient,
       title: 'AI-Powered Insights',
@@ -34,7 +34,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           'Get real-time sentiment analysis, positivity scores, and personalized suggestions to improve your day.',
       illustration: '📊',
     ),
-    _OnboardingPage(
+    _OnboardingPageData(
       icon: Icons.emoji_events_rounded,
       iconGradient: AppColors.amberGradient,
       title: 'Grow Your Positivity',
@@ -76,10 +76,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = ref.watch(settingsProvider).isDarkMode;
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: AppColors.primaryBg,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.darkGradient),
+        decoration: BoxDecoration(
+          gradient: isDarkMode ? AppColors.darkGradient : AppColors.lightGradient,
+        ),
         child: SafeArea(
           child: Column(
             children: [
@@ -93,7 +98,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     child: Text(
                       'Skip',
                       style: TextStyle(
-                        color: AppColors.textSecondary,
+                        color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark,
                         fontSize: 16,
                       ),
                     ),
@@ -107,7 +112,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   controller: _pageController,
                   itemCount: _pages.length,
                   onPageChanged: (i) => setState(() => _currentPage = i),
-                  itemBuilder: (_, i) => _pages[i],
+                  itemBuilder: (_, i) => _OnboardingPage(
+                    page: _pages[i],
+                    isDarkMode: isDarkMode,
+                  ),
                 ),
               ),
 
@@ -122,7 +130,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     dotWidth: 10,
                     spacing: 12,
                     activeDotColor: AppColors.primaryAccent,
-                    dotColor: AppColors.cardBgLight,
+                    dotColor: isDarkMode ? AppColors.cardBgLight : AppColors.cardBgLightGray,
                   ),
                 ),
               ),
@@ -174,18 +182,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
 /// Single onboarding page layout
 class _OnboardingPage extends StatelessWidget {
-  final IconData icon;
-  final LinearGradient iconGradient;
-  final String title;
-  final String description;
-  final String illustration;
+  final _OnboardingPageData page;
+  final bool isDarkMode;
 
   const _OnboardingPage({
-    required this.icon,
-    required this.iconGradient,
-    required this.title,
-    required this.description,
-    required this.illustration,
+    required this.page,
+    required this.isDarkMode,
   });
 
   @override
@@ -197,7 +199,7 @@ class _OnboardingPage extends StatelessWidget {
         children: [
           // Big illustration emoji
           Text(
-            illustration,
+            page.illustration,
             style: const TextStyle(fontSize: 80),
           ),
           const SizedBox(height: 24),
@@ -206,36 +208,36 @@ class _OnboardingPage extends StatelessWidget {
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              gradient: iconGradient,
+              gradient: page.iconGradient,
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: iconGradient.colors.first.withValues(alpha: 0.3),
+                  color: page.iconGradient.colors.first.withValues(alpha: 0.3),
                   blurRadius: 20,
                   spreadRadius: 2,
                 ),
               ],
             ),
-            child: Icon(icon, size: 40, color: Colors.white),
+            child: Icon(page.icon, size: 40, color: Colors.white),
           ),
           const SizedBox(height: 40),
           // Title
           Text(
-            title,
-            style: const TextStyle(
+            page.title,
+            style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+              color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark,
             ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
           // Description
           Text(
-            description,
+            page.description,
             style: TextStyle(
               fontSize: 16,
-              color: AppColors.textSecondary,
+              color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark,
               height: 1.6,
             ),
             textAlign: TextAlign.center,
@@ -244,4 +246,20 @@ class _OnboardingPage extends StatelessWidget {
       ),
     );
   }
+}
+
+class _OnboardingPageData {
+  final IconData icon;
+  final LinearGradient iconGradient;
+  final String title;
+  final String description;
+  final String illustration;
+
+  const _OnboardingPageData({
+    required this.icon,
+    required this.iconGradient,
+    required this.title,
+    required this.description,
+    required this.illustration,
+  });
 }

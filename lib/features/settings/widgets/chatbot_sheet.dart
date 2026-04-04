@@ -49,12 +49,20 @@ class _ChatbotSheetState extends ConsumerState<ChatbotSheet> {
   @override
   Widget build(BuildContext context) {
     final messages = ref.watch(chatMessagesProvider);
+    final isDarkMode = ref.watch(settingsProvider).isDarkMode;
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
-      decoration: const BoxDecoration(
-        color: AppColors.secondaryBg,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: isDarkMode ? AppColors.secondaryBg : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        boxShadow: isDarkMode ? null : [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 20,
+            offset: const Offset(0, -4),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -65,7 +73,7 @@ class _ChatbotSheetState extends ConsumerState<ChatbotSheet> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.surfaceLight,
+                color: isDarkMode ? AppColors.surfaceLight : AppColors.cardBgLightGray,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -87,7 +95,7 @@ class _ChatbotSheetState extends ConsumerState<ChatbotSheet> {
                       color: Colors.white, size: 22),
                 ),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -96,10 +104,10 @@ class _ChatbotSheetState extends ConsumerState<ChatbotSheet> {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
+                          color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark,
                         ),
                       ),
-                      Text(
+                      const Text(
                         'Online',
                         style: TextStyle(fontSize: 12, color: AppColors.positive),
                       ),
@@ -108,14 +116,14 @@ class _ChatbotSheetState extends ConsumerState<ChatbotSheet> {
                 ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close_rounded,
-                      color: AppColors.textSecondary),
+                  icon: Icon(Icons.close_rounded,
+                      color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark),
                 ),
               ],
             ),
           ),
 
-          Divider(color: AppColors.glassBorder, height: 1),
+          Divider(color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark, height: 1),
 
           // Chat messages list
           Expanded(
@@ -123,7 +131,10 @@ class _ChatbotSheetState extends ConsumerState<ChatbotSheet> {
               controller: _scrollController,
               padding: const EdgeInsets.all(16),
               itemCount: messages.length,
-              itemBuilder: (_, index) => _ChatBubble(message: messages[index]),
+              itemBuilder: (_, index) => _ChatBubble(
+                message: messages[index], 
+                isDarkMode: isDarkMode
+              ),
             ),
           ),
 
@@ -137,15 +148,15 @@ class _ChatbotSheetState extends ConsumerState<ChatbotSheet> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     decoration: BoxDecoration(
-                      color: AppColors.glassWhite,
+                      color: isDarkMode ? AppColors.glassWhite : AppColors.cardBgLightGray.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        _TypingDot(delay: 0),
-                        _TypingDot(delay: 150),
-                        _TypingDot(delay: 300),
+                        _TypingDot(delay: 0, isDarkMode: isDarkMode),
+                        _TypingDot(delay: 150, isDarkMode: isDarkMode),
+                        _TypingDot(delay: 300, isDarkMode: isDarkMode),
                       ],
                     ),
                   ),
@@ -160,9 +171,12 @@ class _ChatbotSheetState extends ConsumerState<ChatbotSheet> {
               12 + MediaQuery.of(context).viewInsets.bottom,
             ),
             decoration: BoxDecoration(
-              color: AppColors.primaryBg,
+              color: isDarkMode ? AppColors.primaryBg : Colors.white,
               border: Border(
-                top: BorderSide(color: AppColors.glassBorder, width: 0.5),
+                top: BorderSide(
+                  color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark, 
+                  width: 0.5
+                ),
               ),
             ),
             child: Row(
@@ -170,18 +184,22 @@ class _ChatbotSheetState extends ConsumerState<ChatbotSheet> {
                 Expanded(
                   child: TextField(
                     controller: _messageController,
-                    style: const TextStyle(
-                        color: AppColors.textPrimary, fontSize: 15),
+                    style: TextStyle(
+                      color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark, 
+                      fontSize: 15
+                    ),
                     decoration: InputDecoration(
                       hintText: 'Type your message...',
-                      hintStyle:
-                          TextStyle(color: AppColors.textSecondary, fontSize: 15),
+                      hintStyle: TextStyle(
+                        color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark, 
+                        fontSize: 15
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(24),
                         borderSide: BorderSide.none,
                       ),
                       filled: true,
-                      fillColor: AppColors.cardBg,
+                      fillColor: isDarkMode ? AppColors.cardBg : AppColors.cardBgLightGray.withValues(alpha: 0.3),
                       contentPadding: const EdgeInsets.symmetric(
                           horizontal: 20, vertical: 12),
                     ),
@@ -214,8 +232,9 @@ class _ChatbotSheetState extends ConsumerState<ChatbotSheet> {
 /// Individual chat bubble
 class _ChatBubble extends StatelessWidget {
   final ChatMessage message;
+  final bool isDarkMode;
 
-  const _ChatBubble({required this.message});
+  const _ChatBubble({required this.message, required this.isDarkMode});
 
   @override
   Widget build(BuildContext context) {
@@ -245,7 +264,7 @@ class _ChatBubble extends StatelessWidget {
               decoration: BoxDecoration(
                 color: message.isUser
                     ? AppColors.primaryAccent.withValues(alpha: 0.15)
-                    : AppColors.glassWhite,
+                    : (isDarkMode ? AppColors.glassWhite : AppColors.cardBgLightGray.withValues(alpha: 0.4)),
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(18),
                   topRight: const Radius.circular(18),
@@ -255,14 +274,14 @@ class _ChatBubble extends StatelessWidget {
                 border: Border.all(
                   color: message.isUser
                       ? AppColors.primaryAccent.withValues(alpha: 0.2)
-                      : AppColors.glassBorder,
+                      : (isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
                 ),
               ),
               child: Text(
                 message.text,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
-                  color: AppColors.textPrimary,
+                  color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark,
                   height: 1.5,
                 ),
               ),
@@ -278,7 +297,8 @@ class _ChatBubble extends StatelessWidget {
 /// Animated typing dot
 class _TypingDot extends StatefulWidget {
   final int delay;
-  const _TypingDot({required this.delay});
+  final bool isDarkMode;
+  const _TypingDot({required this.delay, required this.isDarkMode});
 
   @override
   State<_TypingDot> createState() => _TypingDotState();
@@ -318,7 +338,8 @@ class _TypingDotState extends State<_TypingDot>
         height: 8,
         margin: const EdgeInsets.symmetric(horizontal: 2),
         decoration: BoxDecoration(
-          color: AppColors.textSecondary.withValues(alpha: _animation.value),
+          color: (widget.isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark)
+              .withValues(alpha: _animation.value),
           shape: BoxShape.circle,
         ),
       ),

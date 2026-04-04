@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/models/models.dart';
@@ -19,6 +20,8 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
   MoodType? _selectedMood;
   bool _isRecording = false;
   String _recordedText = '';
+  String? _attachedImageUrl;
+  bool _isUploadingImage = false;
   int _selectedInputTab = 0; // 0=Journal, 1=Voice
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
@@ -85,6 +88,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
       text: inputText,
       userId: user?.uid ?? 'demo',
       inputType: inputType,
+      imageUrl: _attachedImageUrl,
     );
 
     if (mounted) {
@@ -98,11 +102,15 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
   @override
   Widget build(BuildContext context) {
     final analysisState = ref.watch(analysisProvider);
+    final isDarkMode = ref.watch(settingsProvider).isDarkMode;
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.primaryBg,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.darkGradient),
+        decoration: BoxDecoration(
+          gradient: isDarkMode ? AppColors.darkGradient : AppColors.lightGradient,
+        ),
         child: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -110,28 +118,31 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'Record Your Thoughts',
                   style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark,
                   ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   'Express yourself through voice or text',
-                  style: TextStyle(fontSize: 15, color: AppColors.textSecondary),
+                  style: TextStyle(
+                    fontSize: 15, 
+                    color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark
+                  ),
                 ),
                 const SizedBox(height: 24),
-                _buildInputToggle(),
+                _buildInputToggle(isDarkMode),
                 const SizedBox(height: 24),
                 if (_selectedInputTab == 0)
-                  _buildJournalInput()
+                  _buildJournalInput(isDarkMode)
                 else
-                  _buildVoiceInput(),
+                  _buildVoiceInput(isDarkMode),
                 const SizedBox(height: 24),
-                _buildMoodSelector(),
+                _buildMoodSelector(isDarkMode),
                 const SizedBox(height: 32),
                 // Analyze button
                 SizedBox(
@@ -187,24 +198,24 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
     );
   }
 
-  Widget _buildInputToggle() {
+  Widget _buildInputToggle(bool isDarkMode) {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: AppColors.cardBg,
+        color: isDarkMode ? AppColors.cardBg : AppColors.cardBgLightGray.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.glassBorder),
+        border: Border.all(color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
       ),
       child: Row(
         children: [
-          _toggleTab('📝 Journal', 0),
-          _toggleTab('🎙️ Voice', 1),
+          _toggleTab('📝 Journal', 0, isDarkMode),
+          _toggleTab('🎙️ Voice', 1, isDarkMode),
         ],
       ),
     );
   }
 
-  Widget _toggleTab(String label, int index) {
+  Widget _toggleTab(String label, int index, bool isDarkMode) {
     final isSelected = _selectedInputTab == index;
     return Expanded(
       child: GestureDetector(
@@ -222,7 +233,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
             style: TextStyle(
               fontSize: 15,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-              color: isSelected ? Colors.white : AppColors.textSecondary,
+              color: isSelected ? Colors.white : (isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark),
             ),
           ),
         ),
@@ -230,38 +241,123 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
     );
   }
 
-  Widget _buildJournalInput() {
+  Widget _buildJournalInput(bool isDarkMode) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.cardBg,
+        color: isDarkMode ? AppColors.cardBg : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.glassBorder),
+        border: Border.all(color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
+        boxShadow: isDarkMode ? null : [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)
+        ],
       ),
-      child: TextField(
-        controller: _journalController,
-        maxLines: 8,
-        style: const TextStyle(
-          color: AppColors.textPrimary,
-          fontSize: 15,
-          height: 1.6,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: _journalController,
+            maxLines: 8,
+            style: TextStyle(
+              color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark,
+              fontSize: 15,
+              height: 1.6,
+            ),
+            decoration: InputDecoration(
+              hintText: 'How are you feeling today? Write freely...',
+              hintStyle: TextStyle(
+                color: (isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark).withValues(alpha: 0.6)
+              ),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.all(20),
+            ),
+          ),
+      if (_attachedImageUrl != null || _isUploadingImage)
+        Padding(
+          padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
+          child: Stack(
+            alignment: Alignment.topRight,
+            children: [
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.primaryAccent, width: 2),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: _isUploadingImage 
+                    ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
+                    : Image.network(_attachedImageUrl!, fit: BoxFit.cover),
+                ),
+              ),
+              if (!_isUploadingImage)
+                GestureDetector(
+                  onTap: () => setState(() => _attachedImageUrl = null),
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: AppColors.negative,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.close, size: 16, color: Colors.white),
+                  ),
+                ),
+            ],
+          ),
         ),
-        decoration: InputDecoration(
-          hintText: 'How are you feeling today? Write freely...',
-          hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.6)),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.all(20),
+      Padding(
+        padding: const EdgeInsets.only(left: 10, bottom: 10),
+        child: Row(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.add_photo_alternate_rounded, color: AppColors.primaryAccent),
+              onPressed: _isUploadingImage ? null : _pickJournalImage,
+            ),
+            if (!_isUploadingImage && _attachedImageUrl == null)
+              Text(
+                'Add Photo',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark,
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      ],
+    ),
+  );
+}
 
-  Widget _buildVoiceInput() {
+Future<void> _pickJournalImage() async {
+  setState(() => _isUploadingImage = true);
+  try {
+    final url = await ref.read(authStateProvider.notifier).uploadJournalImage(ImageSource.gallery);
+    setState(() {
+      _attachedImageUrl = url;
+      _isUploadingImage = false;
+    });
+  } catch (e) {
+    setState(() => _isUploadingImage = false);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to upload image: $e')),
+      );
+    }
+  }
+}
+
+  Widget _buildVoiceInput(bool isDarkMode) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.cardBg,
+        color: isDarkMode ? AppColors.cardBg : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.glassBorder),
+        border: Border.all(color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
+        boxShadow: isDarkMode ? null : [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)
+        ],
       ),
       child: Column(
         children: [
@@ -307,7 +403,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
             _isRecording ? 'Recording... Tap to stop' : 'Tap to start recording',
             style: TextStyle(
               fontSize: 15,
-              color: _isRecording ? AppColors.negative : AppColors.textSecondary,
+              color: _isRecording ? AppColors.negative : (isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -349,7 +445,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
                     _recordedText,
                     style: TextStyle(
                       fontSize: 14,
-                      color: AppColors.textSecondary,
+                      color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark,
                       height: 1.5,
                     ),
                   ),
@@ -362,22 +458,25 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
     );
   }
 
-  Widget _buildMoodSelector() {
+  Widget _buildMoodSelector(bool isDarkMode) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'How are you feeling?',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark,
           ),
         ),
         const SizedBox(height: 6),
         Text(
           'Select your current mood (optional)',
-          style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+          style: TextStyle(
+            fontSize: 13, 
+            color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark
+          ),
         ),
         const SizedBox(height: 14),
         Wrap(
@@ -395,14 +494,17 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
                 decoration: BoxDecoration(
                   color: isSelected
                       ? AppColors.primaryAccent.withValues(alpha: 0.15)
-                      : AppColors.glassWhite,
+                      : (isDarkMode ? AppColors.glassWhite : Colors.white),
                   borderRadius: BorderRadius.circular(30),
                   border: Border.all(
                     color: isSelected
                         ? AppColors.primaryAccent
-                        : AppColors.glassBorder,
+                        : (isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
                     width: isSelected ? 1.5 : 1,
                   ),
+                  boxShadow: isDarkMode ? null : [
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 5)
+                  ],
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -415,7 +517,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
                         fontSize: 13,
                         color: isSelected
                             ? AppColors.primaryAccent
-                            : AppColors.textSecondary,
+                            : (isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark),
                         fontWeight:
                             isSelected ? FontWeight.w600 : FontWeight.w400,
                       ),

@@ -1,12 +1,18 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../models/models.dart';
 import '../services/api_service.dart';
 import '../services/dummy_data_service.dart';
 
 // ── Auth State ──
 
-/// Tracks if the user is logged in (simplified, no real Firebase for now)
+/// Tracks if the user is logged in via Firebase
 final authStateProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   return AuthNotifier();
 });
@@ -15,96 +21,295 @@ class AuthState {
   final bool isLoggedIn;
   final UserModel? user;
   final bool isLoading;
+  final bool isInitialized;
+  final String? error;
 
   const AuthState({
     this.isLoggedIn = false,
     this.user,
     this.isLoading = false,
+    this.isInitialized = false,
+    this.error,
   });
 
-  AuthState copyWith({bool? isLoggedIn, UserModel? user, bool? isLoading}) {
+  AuthState copyWith({
+    bool? isLoggedIn,
+    UserModel? user,
+    bool? isLoading,
+    bool? isInitialized,
+    String? error,
+  }) {
     return AuthState(
       isLoggedIn: isLoggedIn ?? this.isLoggedIn,
       user: user ?? this.user,
       isLoading: isLoading ?? this.isLoading,
+      isInitialized: isInitialized ?? this.isInitialized,
+      error: error ?? this.error,
     );
   }
 }
 
 class AuthNotifier extends StateNotifier<AuthState> {
-  AuthNotifier() : super(const AuthState());
+  final auth.FirebaseAuth _auth = auth.FirebaseAuth.instance;
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  /// Simulate login with email/password
-  Future<void> loginWithEmail(String email, String password) async {
-    state = state.copyWith(isLoading: true);
-    await Future.delayed(const Duration(seconds: 1));
-    
-    final user = UserModel(
-      uid: 'user_${DateTime.now().millisecondsSinceEpoch}',
-      email: email,
-      displayName: email.split('@').first,
-      streak: 7,
-      level: 3,
-      totalPoints: 1250,
-      createdAt: DateTime.now().subtract(const Duration(days: 30)),
-      lastActiveAt: DateTime.now(),
-    );
-
-    state = AuthState(isLoggedIn: true, user: user, isLoading: false);
+  AuthNotifier() : super(const AuthState()) {
+    _init();
   }
 
-  /// Simulate Google Sign In
-  Future<void> loginWithGoogle() async {
-    state = state.copyWith(isLoading: true);
-    await Future.delayed(const Duration(seconds: 1));
-    
-    final user = UserModel(
-      uid: 'google_user_${DateTime.now().millisecondsSinceEpoch}',
-      email: 'user@gmail.com',
-      displayName: 'Positive User',
-      streak: 12,
-      level: 4,
-      totalPoints: 2100,
-      createdAt: DateTime.now().subtract(const Duration(days: 60)),
-      lastActiveAt: DateTime.now(),
-    );
-
-    state = AuthState(isLoggedIn: true, user: user, isLoading: false);
+  /// Initial check for existing session
+  void _init() {
+    _auth.authStateChanges().listen((auth.User? firebaseUser) async {
+      if (firebaseUser == null) {
+        state = state.copyWith(isLoggedIn: false, isInitialized: true, isLoading: false);
+      } else {
+        await _fetchAndSetUser(firebaseUser);
+      }
+    });
   }
 
-  /// Sign up
+  /// Fetch user profile from Firestore and update state
+  Future<void> _fetchAndSetUser(auth.User firebaseUser) async {
+    try {
+      final doc = await _db.collection('users').doc(firebaseUser.uid).get();
+      
+      if (doc.exists) {
+        final userModel = UserModel.fromMap({
+          ...doc.data()!,
+          'uid': firebaseUser.uid,
+        });
+        state = state.copyWith(isLoggedIn: true, user: userModel, isInitialized: true, isLoading: false);
+      } else {
+        // Fallback for new users if sync failed during signup
+        final newUser = UserModel(
+          uid: firebaseUser.uid,
+          email: firebaseUser.email ?? '',
+          displayName: firebaseUser.displayName ?? firebaseUser.email?.split('@').first ?? 'User',
+          createdAt: DateTime.now(),
+          lastActiveAt: DateTime.now(),
+        );
+        state = state.copyWith(isLoggedIn: true, user: newUser, isInitialized: true, isLoading: false);
+      }
+    } catch (e) {
+      state = state.copyWith(error: e.toString(), isInitialized: true, isLoading: false);
+    }
+  }
+
+  /// Register a new user with Email/Password
   Future<void> signUp(String email, String password, String name) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final auth.UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      final user = UserModel(
+        uid: userCredential.user!.uid,
+        email: email,
+        displayName: name,
+        createdAt: DateTime.now(),
+        lastActiveAt: DateTime.now(),
+      );
+
+      // Save to Firestore
+      await _db.collection('users').doc(user.uid).set(user.toMap());
+
+      state = state.copyWith(isLoggedIn: true, user: user, isInitialized: true, isLoading: false);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      rethrow;
+    }
+  }
+
+  /// Login with email/password
+  Future<void> loginWithEmail(String email, String password) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _auth.signInWithEmailAndPassword(email: email, password: password);
+      // state will be updated via authStateChanges listener
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      rethrow;
+    }
+  }
+
+  /// Real Google Sign In
+  Future<void> loginWithGoogle() async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        state = state.copyWith(isLoading: false);
+        return;
+      }
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final auth.AuthCredential credential = auth.GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final auth.UserCredential userCredential = await _auth.signInWithCredential(credential);
+      final firebaseUser = userCredential.user!;
+
+      // Sync with Firestore
+      final doc = await _db.collection('users').doc(firebaseUser.uid).get();
+      if (!doc.exists) {
+        final newUser = UserModel(
+          uid: firebaseUser.uid,
+          email: firebaseUser.email ?? '',
+          displayName: firebaseUser.displayName ?? 'Positive User',
+          photoUrl: firebaseUser.photoURL ?? '',
+          createdAt: DateTime.now(),
+          lastActiveAt: DateTime.now(),
+        );
+        await _db.collection('users').doc(firebaseUser.uid).set(newUser.toMap());
+      }
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      rethrow;
+    }
+  }
+
+  /// Sign out
+  Future<void> logout() async {
     state = state.copyWith(isLoading: true);
-    await Future.delayed(const Duration(seconds: 1));
+    await Future.delayed(const Duration(milliseconds: 800)); // Smooth transition
+    await _auth.signOut();
+    await _googleSignIn.signOut();
+    state = const AuthState(isLoggedIn: false, isInitialized: true);
+  }
+
+  /// Send password reset email
+  Future<void> sendPasswordReset(String email) async {
+    await _auth.sendPasswordResetEmail(email: email);
+  }
+
+  /// Delete all user data from Firestore
+  Future<void> deleteAllData() async {
+    if (state.user == null) return;
+    final uid = state.user!.uid;
     
-    final user = UserModel(
-      uid: 'user_${DateTime.now().millisecondsSinceEpoch}',
-      email: email,
-      displayName: name,
-      createdAt: DateTime.now(),
-      lastActiveAt: DateTime.now(),
-    );
-
-    state = AuthState(isLoggedIn: true, user: user, isLoading: false);
+    // Delete analyses subcollection
+    final analyses = await _db.collection('users').doc(uid).collection('analyses').get();
+    for (final doc in analyses.docs) {
+      await doc.reference.delete();
+    }
+    
+    // Delete settings subcollection
+    final settings = await _db.collection('users').doc(uid).collection('settings').get();
+    for (final doc in settings.docs) {
+      await doc.reference.delete();
+    }
+    
+    // Delete user document
+    await _db.collection('users').doc(uid).delete();
   }
 
-  void logout() {
-    state = const AuthState();
-  }
-
-  /// Update user profile (simulated)
+  /// Update user profile in Firestore and state
   Future<void> updateProfile({String? name, String? photoUrl}) async {
     if (state.user == null) return;
     
     state = state.copyWith(isLoading: true);
-    await Future.delayed(const Duration(milliseconds: 500));
+    try {
+      final updates = <String, dynamic>{};
+      if (name != null) updates['displayName'] = name;
+      if (photoUrl != null) updates['photoUrl'] = photoUrl;
+      
+      await _db.collection('users').doc(state.user!.uid).update(updates);
+      
+      final updatedUser = state.user!.copyWith(
+        displayName: name ?? state.user!.displayName,
+        photoUrl: photoUrl ?? state.user!.photoUrl,
+      );
+      
+      state = state.copyWith(user: updatedUser, isLoading: false);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  /// Pick an image and upload to Supabase, then update Firestore
+  Future<void> uploadProfileImage(ImageSource source) async {
+    if (state.user == null) return;
     
-    final updatedUser = state.user!.copyWith(
-      displayName: name ?? state.user!.displayName,
-      photoUrl: photoUrl ?? state.user!.photoUrl,
-    );
+    final ImagePicker picker = ImagePicker();
+    try {
+      // 1. Pick Image
+      final XFile? image = await picker.pickImage(
+        source: source,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 75,
+      );
+      
+      if (image == null) return;
+      
+      state = state.copyWith(isLoading: true);
+      final file = File(image.path);
+      final fileName = 'avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final storagePath = '${state.user!.uid}/$fileName';
+
+      // 2. Upload to Supabase (using folder structure from guide)
+      final supabase = Supabase.instance.client;
+      await supabase.storage.from('profile-images').upload(
+        storagePath,
+        file,
+        fileOptions: const FileOptions(cacheControl: '3600', upsert: true),
+      );
+
+      // 3. Get Public URL
+      final String publicUrl = supabase.storage.from('profile-images').getPublicUrl(storagePath);
+
+      // 4. Update Profile in Firestore
+      await updateProfile(photoUrl: publicUrl);
+      
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: 'Upload failed: ${e.toString()}');
+    }
+  }
+
+  /// Pick an image and upload to Supabase 'journal-attachments' bucket
+  Future<String?> uploadJournalImage(ImageSource source) async {
+    if (state.user == null) return null;
     
-    state = state.copyWith(user: updatedUser, isLoading: false);
+    final ImagePicker picker = ImagePicker();
+    try {
+      // 1. Pick Image
+      final XFile? image = await picker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 70,
+      );
+      
+      if (image == null) return null;
+      
+      state = state.copyWith(isLoading: true);
+      final file = File(image.path);
+      final fileName = 'journal_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final storagePath = '${state.user!.uid}/$fileName';
+
+      // 2. Upload to Supabase
+      final supabase = Supabase.instance.client;
+      await supabase.storage.from('journal-attachments').upload(
+        storagePath,
+        file,
+        fileOptions: const FileOptions(cacheControl: '3600', upsert: true),
+      );
+
+      // 3. Get Public URL
+      final String publicUrl = supabase.storage.from('journal-attachments').getPublicUrl(storagePath);
+      
+      state = state.copyWith(isLoading: false);
+      return publicUrl;
+      
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: 'Journal image upload failed: ${e.toString()}');
+      return null;
+    }
   }
 }
 
@@ -131,20 +336,136 @@ class DashboardState {
 }
 
 class DashboardNotifier extends StateNotifier<DashboardState> {
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
+
   DashboardNotifier() : super(const DashboardState());
 
-  /// Load all dashboard data
+  /// Load all dashboard data from Firestore
   Future<void> loadDashboard(String userId) async {
     state = const DashboardState(isLoading: true);
-    await Future.delayed(const Duration(milliseconds: 800));
 
-    state = DashboardState(
-      todayReport: DummyDataService.getTodayReport(userId),
-      weeklyInsights: DummyDataService.getWeeklyInsights(),
-      recentAnalyses: DummyDataService.getRecentAnalyses(userId),
-      streakInfo: DummyDataService.getStreakInfo(),
-      isLoading: false,
-    );
+    try {
+      // Fetch recent analyses from Firestore
+      final analysesSnap = await _db
+          .collection('users')
+          .doc(userId)
+          .collection('analyses')
+          .orderBy('analyzedAt', descending: true)
+          .limit(20)
+          .get();
+
+      final recentAnalyses = analysesSnap.docs
+          .map((doc) => AnalysisResult.fromMap({...doc.data(), 'id': doc.id}))
+          .toList();
+
+      // Build today's report from analyses
+      final now = DateTime.now();
+      final todayStart = DateTime(now.year, now.month, now.day);
+      final todayAnalyses = recentAnalyses
+          .where((a) => a.analyzedAt.isAfter(todayStart))
+          .toList();
+
+      DailyReport? todayReport;
+      if (todayAnalyses.isNotEmpty) {
+        final avgScore = todayAnalyses.map((a) => a.positivityScore).reduce((a, b) => a + b) ~/ todayAnalyses.length;
+        final sentiments = todayAnalyses.map((a) => a.sentiment).toList();
+        final dominantSentiment = _mostCommon(sentiments);
+        final tones = todayAnalyses.map((a) => a.tone).toList();
+        final dominantTone = _mostCommon(tones);
+
+        todayReport = DailyReport(
+          id: 'report_today',
+          userId: userId,
+          date: now,
+          averageScore: avgScore,
+          dominantSentiment: dominantSentiment,
+          dominantTone: dominantTone,
+          entriesCount: todayAnalyses.length,
+          suggestions: _getSuggestions(avgScore),
+        );
+      } else {
+        // Fallback with dummy data if no analyses yet
+        todayReport = DummyDataService.getTodayReport(userId);
+      }
+
+      // Build weekly insights from analyses
+      List<InsightData> weeklyInsights;
+      if (recentAnalyses.length >= 3) {
+        final weekStart = now.subtract(const Duration(days: 7));
+        weeklyInsights = recentAnalyses
+            .where((a) => a.analyzedAt.isAfter(weekStart))
+            .map((a) => InsightData(
+                  date: a.analyzedAt,
+                  score: a.positivityScore,
+                  sentiment: a.sentiment,
+                ))
+            .toList();
+        if (weeklyInsights.isEmpty) {
+          weeklyInsights = DummyDataService.getWeeklyInsights();
+        }
+      } else {
+        weeklyInsights = DummyDataService.getWeeklyInsights();
+      }
+
+      // Fetch user doc for streak info
+      final userDoc = await _db.collection('users').doc(userId).get();
+      final userData = userDoc.data() ?? {};
+      final streakInfo = {
+        'currentStreak': userData['streak'] ?? 0,
+        'longestStreak': userData['longestStreak'] ?? 0,
+        'totalEntries': recentAnalyses.length,
+        'level': userData['level'] ?? 1,
+        'points': userData['totalPoints'] ?? 0,
+        'nextLevelPoints': ((userData['level'] ?? 1) + 1) * 500,
+      };
+
+      state = DashboardState(
+        todayReport: todayReport,
+        weeklyInsights: weeklyInsights,
+        recentAnalyses: recentAnalyses.take(5).toList(),
+        streakInfo: streakInfo,
+        isLoading: false,
+      );
+    } catch (e) {
+      // Fallback to dummy data on error
+      state = DashboardState(
+        todayReport: DummyDataService.getTodayReport(userId),
+        weeklyInsights: DummyDataService.getWeeklyInsights(),
+        recentAnalyses: DummyDataService.getRecentAnalyses(userId),
+        streakInfo: DummyDataService.getStreakInfo(),
+        isLoading: false,
+      );
+    }
+  }
+
+  String _mostCommon(List<String> items) {
+    final freq = <String, int>{};
+    for (final item in items) {
+      freq[item] = (freq[item] ?? 0) + 1;
+    }
+    return freq.entries.reduce((a, b) => a.value >= b.value ? a : b).key;
+  }
+
+  List<String> _getSuggestions(int score) {
+    if (score > 70) {
+      return [
+        'Your positivity is radiating! Keep journaling daily.',
+        'Share your positive energy with someone today.',
+        'Consider setting a new personal growth goal.',
+      ];
+    } else if (score > 45) {
+      return [
+        'You\'re doing well. Try a gratitude exercise this evening.',
+        'Take 5 minutes for mindful breathing.',
+        'Reflect on one thing that went well today.',
+      ];
+    } else {
+      return [
+        'Take a moment to pause and breathe deeply.',
+        'Write down 3 things you\'re grateful for.',
+        'Remember: every storm passes. Better days are ahead.',
+      ];
+    }
   }
 
   /// Refresh data
@@ -172,13 +493,16 @@ class AnalysisState {
 }
 
 class AnalysisNotifier extends StateNotifier<AnalysisState> {
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
+
   AnalysisNotifier() : super(const AnalysisState());
 
-  /// Analyze user text input
+  /// Analyze user text input and save to Firestore
   Future<void> analyze({
     required String text,
     required String userId,
     required String inputType,
+    String? imageUrl,
   }) async {
     state = const AnalysisState(isAnalyzing: true);
 
@@ -189,11 +513,28 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
         inputType: inputType,
       );
 
+      // Add the imageUrl if provided
+      final finalResult = imageUrl != null ? result.copyWith(imageUrl: imageUrl) : result;
+
       final feedback = await ApiService.getFeedback(
-        sentiment: result.sentiment,
-        tone: result.tone,
-        score: result.positivityScore,
+        sentiment: finalResult.sentiment,
+        tone: finalResult.tone,
+        score: finalResult.positivityScore,
       );
+
+      // Save analysis to Firestore
+      await _db
+          .collection('users')
+          .doc(userId)
+          .collection('analyses')
+          .doc(finalResult.id)
+          .set(finalResult.toMap());
+
+      // Update user stats
+      await _db.collection('users').doc(userId).update({
+        'lastActiveAt': DateTime.now().toIso8601String(),
+        'totalPoints': FieldValue.increment(result.positivityScore ~/ 10),
+      });
 
       state = AnalysisState(
         currentResult: result,
@@ -211,7 +552,8 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
 // ── Settings State ──
 
 final settingsProvider = StateNotifierProvider<SettingsNotifier, SettingsState>((ref) {
-  return SettingsNotifier();
+  final prefs = ref.watch(sharedPreferencesProvider);
+  return SettingsNotifier(prefs);
 });
 
 class SettingsState {
@@ -219,12 +561,14 @@ class SettingsState {
   final bool notificationsEnabled;
   final bool islamicContentEnabled;
   final bool isPremium;
+  final bool isDarkMode;
 
   const SettingsState({
     this.trackingEnabled = true,
     this.notificationsEnabled = true,
     this.islamicContentEnabled = true,
     this.isPremium = false,
+    this.isDarkMode = false, // Defaults to Light Mode as requested
   });
 
   SettingsState copyWith({
@@ -232,16 +576,29 @@ class SettingsState {
     bool? notificationsEnabled,
     bool? islamicContentEnabled,
     bool? isPremium,
+    bool? isDarkMode,
   }) => SettingsState(
     trackingEnabled: trackingEnabled ?? this.trackingEnabled,
     notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
     islamicContentEnabled: islamicContentEnabled ?? this.islamicContentEnabled,
     isPremium: isPremium ?? this.isPremium,
+    isDarkMode: isDarkMode ?? this.isDarkMode,
   );
 }
 
 class SettingsNotifier extends StateNotifier<SettingsState> {
-  SettingsNotifier() : super(const SettingsState());
+  final SharedPreferences _prefs;
+  static const String _themeKey = 'is_dark_mode';
+
+  SettingsNotifier(this._prefs) : super(SettingsState(
+    isDarkMode: _prefs.getBool(_themeKey) ?? false,
+  ));
+
+  void toggleTheme() {
+    final newValue = !state.isDarkMode;
+    _prefs.setBool(_themeKey, newValue);
+    state = state.copyWith(isDarkMode: newValue);
+  }
 
   void toggleTracking() => state = state.copyWith(trackingEnabled: !state.trackingEnabled);
   void toggleNotifications() => state = state.copyWith(notificationsEnabled: !state.notificationsEnabled);
@@ -249,34 +606,35 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
   void upgradeToPremium() => state = state.copyWith(isPremium: true);
 }
 
+
+// ── Shared Preferences Provider ──
+
+/// Access to the persisted settings
+final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
+  throw UnimplementedError('Initialize in main() and override in ProviderScope');
+});
+
 // ── Onboarding State ──
 
 final onboardingProvider = StateNotifierProvider<OnboardingNotifier, bool>((ref) {
-  return OnboardingNotifier();
+  final prefs = ref.watch(sharedPreferencesProvider);
+  return OnboardingNotifier(prefs);
 });
 
 class OnboardingNotifier extends StateNotifier<bool> {
-  OnboardingNotifier() : super(false) {
-    _loadOnboardingStatus();
-  }
-
+  final SharedPreferences _prefs;
   static const String _key = 'onboarding_complete';
 
-  Future<void> _loadOnboardingStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    state = prefs.getBool(_key) ?? false;
-  }
+  OnboardingNotifier(this._prefs) : super(_prefs.getBool(_key) ?? false);
 
   Future<void> completeOnboarding() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_key, true);
+    await _prefs.setBool(_key, true);
     state = true;
   }
 
   /// Reset for testing if needed
   Future<void> resetOnboarding() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_key, false);
+    await _prefs.setBool(_key, false);
     state = false;
   }
 }

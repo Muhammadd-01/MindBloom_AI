@@ -67,31 +67,40 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       if (mounted) _textController.forward();
     });
 
-    // Navigation logic after 3 seconds
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        final isOnboardingComplete = ref.read(onboardingProvider);
-        final isLoggedIn = ref.read(authStateProvider).isLoggedIn;
+    _checkAuthAndNavigate();
+  }
 
-        Widget nextScreen;
-        if (!isOnboardingComplete) {
-          nextScreen = const OnboardingScreen();
-        } else if (!isLoggedIn) {
-          nextScreen = const AuthScreen();
-        } else {
-          nextScreen = const MainShell();
-        }
-
-        Navigator.of(context).pushReplacement(
-          PageRouteBuilder(
-            pageBuilder: (_, __, ___) => nextScreen,
-            transitionDuration: const Duration(milliseconds: 800),
-            transitionsBuilder: (_, animation, __, child) {
-              return FadeTransition(opacity: animation, child: child);
-            },
-          ),
-        );
+  void _checkAuthAndNavigate() {
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (!mounted) return;
+      
+      final authState = ref.read(authStateProvider);
+      if (!authState.isInitialized) {
+        _checkAuthAndNavigate();
+        return;
       }
+
+      final isOnboardingComplete = ref.read(onboardingProvider);
+      final isLoggedIn = authState.isLoggedIn;
+
+      Widget nextScreen;
+      if (!isOnboardingComplete) {
+        nextScreen = const OnboardingScreen();
+      } else if (!isLoggedIn) {
+        nextScreen = const AuthScreen();
+      } else {
+        nextScreen = const MainShell();
+      }
+
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          pageBuilder: (_, __, ___) => nextScreen,
+          transitionDuration: const Duration(milliseconds: 800),
+          transitionsBuilder: (_, animation, __, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+        ),
+      );
     });
   }
 
@@ -142,7 +151,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       height: 120,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        gradient: AppColors.primaryGradient,
                         boxShadow: [
                           BoxShadow(
                             color: AppColors.primaryAccent.withValues(alpha: 0.4),
@@ -151,11 +159,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                           ),
                         ],
                       ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.psychology_alt_rounded,
-                          size: 60,
-                          color: Colors.white,
+                      child: ClipOval(
+                        child: Image.asset(
+                          'assets/images/app_logo.png',
+                          fit: BoxFit.cover,
                         ),
                       ),
                     ),
@@ -173,7 +180,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                   child: Column(
                     children: [
                       const Text(
-                        'Positive Attitude',
+                        'MindBloom',
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
@@ -186,7 +193,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                         shaderCallback: (bounds) =>
                             AppColors.primaryGradient.createShader(bounds),
                         child: const Text(
-                          'Creator',
+                          'AI',
                           style: TextStyle(
                             fontSize: 32,
                             fontWeight: FontWeight.bold,
@@ -197,7 +204,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Turn everyday actions into\nmeasurable positivity',
+                        'Nurture your mind,\ngrow your positivity',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 16,
