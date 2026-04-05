@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/providers/providers.dart';
 import '../../auth/screens/auth_screen.dart';
@@ -19,36 +20,39 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   final _pages = const [
     _OnboardingPageData(
-      icon: Icons.mic_rounded,
+      icon: Icons.auto_awesome_rounded,
       iconGradient: AppColors.primaryGradient,
-      title: 'Share Your Thoughts',
+      title: 'MindBloom AI Coaching',
       description:
-          'Record your voice or write in your journal. Our AI listens and understands your emotions without judgment.',
-      illustration: '🎙️',
+          'Your personal AI coach that observes your daily habits and offers gentle nudges toward a more positive, balanced life.',
+      illustration: '🌱',
+      tagline: 'Nurture Your Growth',
     ),
     _OnboardingPageData(
-      icon: Icons.insights_rounded,
+      icon: Icons.graphic_eq_rounded,
       iconGradient: AppColors.blueGradient,
-      title: 'AI-Powered Insights',
+      title: 'Vocal Behavioral Analysis',
       description:
-          'Get real-time sentiment analysis, positivity scores, and personalized suggestions to improve your day.',
-      illustration: '📊',
+          'Share your thoughts out loud. Our advanced AI analyzes tone, sentiment, and patterns to give you a deep behavioral mirror.',
+      illustration: '📢',
+      tagline: 'Speak Your Truth',
     ),
     _OnboardingPageData(
-      icon: Icons.emoji_events_rounded,
+      icon: Icons.workspace_premium_rounded,
       iconGradient: AppColors.amberGradient,
-      title: 'Grow Your Positivity',
+      title: 'Gamified Well-being',
       description:
-          'Track your progress, build streaks, level up, and transform your everyday mindset with AI coaching.',
+          'Turn self-awareness into a game. Complete challenges, earn rewards, and watch your positivity score bloom every day.',
       illustration: '🏆',
+      tagline: 'Bloom Every Day',
     ),
   ];
 
   void _nextPage() {
     if (_currentPage < _pages.length - 1) {
       _pageController.nextPage(
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeInOut,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeOutQuart,
       );
     } else {
       _navigateToAuth();
@@ -60,7 +64,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => const AuthScreen(),
-        transitionDuration: const Duration(milliseconds: 600),
+        transitionDuration: const Duration(milliseconds: 800),
         transitionsBuilder: (_, animation, __, child) {
           return FadeTransition(opacity: animation, child: child);
         },
@@ -88,21 +92,28 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              // Skip button
-              Align(
-                alignment: Alignment.topRight,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: TextButton(
-                    onPressed: _navigateToAuth,
-                    child: Text(
-                      'Skip',
-                      style: TextStyle(
-                        color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark,
-                        fontSize: 16,
+              // Header with Skip
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Image.asset('assets/images/app_logo.png', width: 32, height: 32)
+                        .animate()
+                        .fadeIn()
+                        .scale(),
+                    TextButton(
+                      onPressed: _navigateToAuth,
+                      child: Text(
+                        'Skip',
+                        style: TextStyle(
+                          color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
               ),
 
@@ -119,57 +130,72 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 ),
               ),
 
-              // Page indicator
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                child: SmoothPageIndicator(
-                  controller: _pageController,
-                  count: _pages.length,
-                  effect: WormEffect(
-                    dotHeight: 10,
-                    dotWidth: 10,
-                    spacing: 12,
-                    activeDotColor: AppColors.primaryAccent,
-                    dotColor: isDarkMode ? AppColors.cardBgLight : AppColors.cardBgLightGray,
-                  ),
-                ),
-              ),
-
-              // Next / Get Started button
+              // Bottom Actions
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 0, 24, 40),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: _nextPage,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryAccent,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          _currentPage == _pages.length - 1
-                              ? 'Get Started'
-                              : 'Next',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                          ),
+                child: Column(
+                  children: [
+                    SmoothPageIndicator(
+                      controller: _pageController,
+                      count: _pages.length,
+                      effect: CustomizableEffect(
+                        activeDotDecoration: DotDecoration(
+                          width: 24,
+                          height: 8,
+                          color: AppColors.primaryAccent,
+                          borderRadius: BorderRadius.circular(4),
                         ),
-                        if (_currentPage < _pages.length - 1) ...[
-                          const SizedBox(width: 8),
-                          const Icon(Icons.arrow_forward_rounded, size: 20),
-                        ],
-                      ],
+                        dotDecoration: DotDecoration(
+                          width: 8,
+                          height: 8,
+                          color: isDarkMode ? Colors.white12 : Colors.black12,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        spacing: 8,
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 32),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 60,
+                      child: ElevatedButton(
+                        onPressed: _nextPage,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryAccent,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          elevation: 0,
+                        ).copyWith(
+                          overlayColor: WidgetStateProperty.all(Colors.white10),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              _currentPage == _pages.length - 1
+                                  ? 'Get Started'
+                                  : 'Next Step',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Icon(
+                              _currentPage == _pages.length - 1
+                                  ? Icons.rocket_launch_rounded
+                                  : Icons.arrow_forward_ios_rounded,
+                              size: 18,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ).animate(target: _currentPage == _pages.length - 1 ? 1 : 0)
+                     .shimmer(duration: 1500.ms, delay: 500.ms),
+                  ],
                 ),
               ),
             ],
@@ -180,7 +206,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 }
 
-/// Single onboarding page layout
 class _OnboardingPage extends StatelessWidget {
   final _OnboardingPageData page;
   final bool isDarkMode;
@@ -193,45 +218,61 @@ class _OnboardingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
+      padding: const EdgeInsets.symmetric(horizontal: 40),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Big illustration emoji
-          Text(
-            page.illustration,
-            style: const TextStyle(fontSize: 80),
-          ),
-          const SizedBox(height: 24),
-          // Gradient icon circle
+          // Illustration / Emoji
           Container(
-            width: 80,
-            height: 80,
+            padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              gradient: page.iconGradient,
+              color: isDarkMode ? Colors.white.withValues(alpha: 0.03) : Colors.black.withValues(alpha: 0.03),
               shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: page.iconGradient.colors.first.withValues(alpha: 0.3),
-                  blurRadius: 20,
-                  spreadRadius: 2,
-                ),
-              ],
             ),
-            child: Icon(page.icon, size: 40, color: Colors.white),
-          ),
-          const SizedBox(height: 40),
+            child: Text(
+              page.illustration,
+              style: const TextStyle(fontSize: 100),
+            ),
+          ).animate()
+           .fadeIn(duration: 600.ms)
+           .scale(delay: 200.ms, curve: Curves.elasticOut),
+          
+          const SizedBox(height: 48),
+          
+          // Tagline Badge
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            decoration: BoxDecoration(
+              color: page.iconGradient.colors.first.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              page.tagline.toUpperCase(),
+              style: TextStyle(
+                color: page.iconGradient.colors.first,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.2,
+              ),
+            ),
+          ).animate().fadeIn(delay: 400.ms).moveY(begin: 10, end: 0),
+
+          const SizedBox(height: 16),
+          
           // Title
           Text(
             page.title,
             style: TextStyle(
-              fontSize: 28,
+              fontSize: 32,
               fontWeight: FontWeight.bold,
               color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark,
+              height: 1.1,
             ),
             textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
+          ).animate().fadeIn(delay: 500.ms).moveY(begin: 10, end: 0),
+
+          const SizedBox(height: 20),
+          
           // Description
           Text(
             page.description,
@@ -241,7 +282,7 @@ class _OnboardingPage extends StatelessWidget {
               height: 1.6,
             ),
             textAlign: TextAlign.center,
-          ),
+          ).animate().fadeIn(delay: 600.ms).moveY(begin: 10, end: 0),
         ],
       ),
     );
@@ -254,6 +295,7 @@ class _OnboardingPageData {
   final String title;
   final String description;
   final String illustration;
+  final String tagline;
 
   const _OnboardingPageData({
     required this.icon,
@@ -261,5 +303,6 @@ class _OnboardingPageData {
     required this.title,
     required this.description,
     required this.illustration,
+    required this.tagline,
   });
 }
