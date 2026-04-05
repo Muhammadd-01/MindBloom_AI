@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -361,11 +362,18 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
                     const SizedBox(height: 12),
                     Row(
                       children: [
-                        if (!_isFocusMode) Expanded(child: _buildInputToggle(isDarkMode)),
-                        if (!_isFocusMode) const SizedBox(width: 12),
+                        if (!_isFocusMode) 
+                          Expanded(
+                            flex: 3,
+                            child: _buildInputToggle(isDarkMode),
+                          ),
+                        if (!_isFocusMode) const SizedBox(width: 8),
                         _buildPassiveToggle(ref, isDarkMode),
-                        const SizedBox(width: 8),
-                        _buildGrowthIndicator(isDarkMode),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          flex: 2,
+                          child: _buildGrowthIndicator(isDarkMode),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 24),
@@ -379,48 +387,69 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
                     // Analyze button
                     SizedBox(
                       width: double.infinity,
-                      height: 56,
-                      child: ElevatedButton(
-                        onPressed: analysisState.isAnalyzing ? null : _analyzeInput,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryAccent,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
+                      height: 60,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primaryAccent.withValues(alpha: 0.3),
+                              blurRadius: 15,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
                         ),
-                        child: analysisState.isAnalyzing
-                            ? const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation(Colors.white),
+                        child: ElevatedButton(
+                          onPressed: analysisState.isAnalyzing ? null : _analyzeInput,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryAccent,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shadowColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                          child: analysisState.isAnalyzing
+                              ? const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        valueColor: AlwaysStoppedAnimation(Colors.white),
+                                      ),
                                     ),
-                                  ),
-                                  SizedBox(width: 12),
-                                  Text('Analyzing...'),
-                                ],
-                              )
-                            : const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.psychology_rounded, size: 22),
-                                  SizedBox(width: 10),
-                                  Text(
-                                    'Analyze My Input',
-                                    style: TextStyle(
-                                      fontSize: 17,
-                                      fontWeight: FontWeight.w600,
+                                    SizedBox(width: 12),
+                                    Text(
+                                      'AI IS PROCESSING...',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: 1.5,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
+                                  ],
+                                )
+                              : const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.auto_awesome_rounded, size: 24),
+                                    SizedBox(width: 12),
+                                    Text(
+                                      'BEGIN ANALYSIS',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: 1.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                        ),
                       ),
-                    ).animate().fadeIn(duration: 400.ms).scale(delay: 100.ms),
+                    ).animate().fadeIn(duration: 400.ms).scale(delay: 100.ms, begin: const Offset(0.95, 0.95)),
                     const SizedBox(height: 100),
                   ],
                 ),
@@ -540,20 +569,25 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
     final color = count >= limit ? AppColors.negative : AppColors.primaryAccent;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.auto_graph_rounded, size: 14, color: color),
-          const SizedBox(width: 6),
-          Text(
-            'Daily Growth: $count/$limit',
-            style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold),
+          Icon(Icons.auto_graph_rounded, size: 12, color: color),
+          const SizedBox(width: 4),
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                '$count/$limit Growth',
+                style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold),
+              ),
+            ),
           ),
         ],
       ),
@@ -562,16 +596,44 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
 
   Widget _buildInputToggle(bool isDarkMode) {
     return Container(
+      height: 50,
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: isDarkMode ? AppColors.cardBg : AppColors.cardBgLightGray.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(14),
+        color: isDarkMode ? AppColors.cardBg.withValues(alpha: 0.5) : AppColors.cardBgLightGray.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(25),
         border: Border.all(color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
       ),
-      child: Row(
+      child: Stack(
         children: [
-          _toggleTab('📝 Journal', 0, isDarkMode),
-          _toggleTab('🎙️ Voice', 1, isDarkMode),
+          // Sliding Background
+          AnimatedAlign(
+            duration: 300.ms,
+            curve: Curves.easeInOutBack,
+            alignment: _selectedInputTab == 0 ? Alignment.centerLeft : Alignment.centerRight,
+            child: FractionallySizedBox(
+              widthFactor: 0.5,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: AppColors.primaryGradient,
+                  borderRadius: BorderRadius.circular(21),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primaryAccent.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // Tab Icons/Labels
+          Row(
+            children: [
+              _toggleTab('📝 Journal', 0, isDarkMode),
+              _toggleTab('🎙️ Voice', 1, isDarkMode),
+            ],
+          ),
         ],
       ),
     );
@@ -584,41 +646,34 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
     
     return Expanded(
       child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: () {
           if (isVoiceLocked) {
              _showPremiumPaywall();
           } else {
             setState(() => _selectedInputTab = index);
+            HapticFeedback.lightImpact();
           }
         },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            gradient: isSelected ? AppColors.primaryGradient : null,
-            borderRadius: BorderRadius.circular(12),
-          ),
+        child: Center(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Flexible(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    label,
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                      color: isSelected ? Colors.white : (isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark),
-                    ),
-                  ),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  color: isSelected ? Colors.white : (isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark),
                 ),
               ),
               if (isVoiceLocked) ...[
                 const SizedBox(width: 4),
-                const Icon(Icons.lock_rounded, size: 12, color: AppColors.secondaryAccent),
+                Icon(
+                  Icons.lock_rounded, 
+                  size: 12, 
+                  color: isDarkMode ? AppColors.secondaryAccent : AppColors.textSecondaryDark.withValues(alpha: 0.5)
+                ),
               ],
             ],
           ),
@@ -630,130 +685,160 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
   Widget _buildJournalInput(bool isDarkMode) {
     return Container(
       decoration: BoxDecoration(
-        color: isDarkMode ? AppColors.cardBg : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
-        boxShadow: isDarkMode ? null : [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)
+        color: isDarkMode ? AppColors.cardBg.withValues(alpha: 0.4) : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark,
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDarkMode ? 0.2 : 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Column(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               TextField(
                 controller: _journalController,
                 maxLines: _isFocusMode ? 15 : 8,
                 style: TextStyle(
                   color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark,
-                  fontSize: 15,
+                  fontSize: 16,
                   height: 1.6,
                 ),
                 decoration: InputDecoration(
                   hintText: _prompts[_currentPromptIndex],
                   hintStyle: TextStyle(
-                    color: (isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark).withValues(alpha: 0.6)
+                    color: (isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark).withValues(alpha: 0.4)
                   ),
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.all(20),
+                  contentPadding: const EdgeInsets.all(24),
                 ),
               ),
               if (_journalController.text.isNotEmpty)
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
                           color: _vibeColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: _vibeColor.withValues(alpha: 0.3)),
+                          borderRadius: BorderRadius.circular(10),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.auto_awesome_rounded, size: 14, color: _vibeColor),
-                            const SizedBox(width: 4),
+                            const SizedBox(width: 6),
                             Text(
                               'Vibe: $_currentVibe',
-                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: _vibeColor),
+                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _vibeColor),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const Spacer(),
                       Text(
-                        '${_journalController.text.split(' ').where((w) => w.isNotEmpty).length} words',
-                        style: TextStyle(fontSize: 11, color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark),
+                        '${_journalController.text.trim().split(RegExp(r'\s+')).length} words',
+                        style: TextStyle(
+                          fontSize: 12, 
+                          color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark,
+                          fontStyle: FontStyle.italic,
+                        ),
                       ),
                     ],
                   ),
                 ),
-              const SizedBox(height: 12),
-            ],
-          ),
-      if (_attachedImageUrl != null || _isUploadingImage)
-        Padding(
-          padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
-          child: Stack(
-            alignment: Alignment.topRight,
-            children: [
-              Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.primaryAccent, width: 2),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: _isUploadingImage 
-                    ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
-                    : Image.network(_attachedImageUrl!, fit: BoxFit.cover),
-                ),
-              ),
-              if (!_isUploadingImage)
-                GestureDetector(
-                  onTap: () => setState(() => _attachedImageUrl = null),
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: AppColors.negative,
-                      shape: BoxShape.circle,
+              const SizedBox(height: 16),
+              const Divider(height: 1, color: Colors.white12),
+              
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    _buildActionButton(
+                      icon: Icons.add_photo_alternate_rounded,
+                      label: _attachedImageUrl != null ? 'Change Photo' : 'Add Image',
+                      onPressed: _isUploadingImage ? null : _pickJournalImage,
+                      isDarkMode: isDarkMode,
                     ),
-                    child: const Icon(Icons.close, size: 16, color: Colors.white),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      Padding(
-        padding: const EdgeInsets.only(left: 10, bottom: 10),
-        child: Row(
-          children: [
-            IconButton(
-              icon: const Icon(Icons.add_photo_alternate_rounded, color: AppColors.primaryAccent),
-              onPressed: _isUploadingImage ? null : _pickJournalImage,
-            ),
-            if (!_isUploadingImage && _attachedImageUrl == null)
-              Text(
-                'Add Photo',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark,
+                    const Spacer(),
+                    if (_attachedImageUrl != null)
+                      _buildImagePreview(isDarkMode),
+                  ],
                 ),
               ),
             ],
           ),
         ),
-      ],
-    ),
-  );
-}
+      ),
+    );
+  }
 
-Future<void> _pickJournalImage() async {
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback? onPressed,
+    required bool isDarkMode,
+  }) {
+    return TextButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 20, color: AppColors.primaryAccent),
+      label: Text(
+        label,
+        style: TextStyle(
+          color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark,
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        backgroundColor: Colors.white.withValues(alpha: isDarkMode ? 0.05 : 0.5),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  Widget _buildImagePreview(bool isDarkMode) {
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.primaryAccent, width: 2),
+      ),
+      child: Stack(
+        alignment: Alignment.topRight,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: Image.network(_attachedImageUrl!, fit: BoxFit.cover, width: 44, height: 44),
+          ),
+          GestureDetector(
+            onTap: () => setState(() => _attachedImageUrl = null),
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              margin: const EdgeInsets.all(1),
+              decoration: const BoxDecoration(color: AppColors.negative, shape: BoxShape.circle),
+              child: const Icon(Icons.close, size: 8, color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    ).animate().scale();
+  }
+
+  Future<void> _pickJournalImage() async {
   setState(() => _isUploadingImage = true);
   try {
     final url = await ref.read(authStateProvider.notifier).uploadJournalImage(ImageSource.gallery);
@@ -773,54 +858,41 @@ Future<void> _pickJournalImage() async {
 
   Widget _buildVoiceInput(bool isDarkMode) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
       decoration: BoxDecoration(
-        color: isDarkMode ? AppColors.cardBg : Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        color: isDarkMode ? AppColors.cardBg.withValues(alpha: 0.4) : Colors.white,
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
-        boxShadow: isDarkMode ? null : [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDarkMode ? 0.2 : 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
         ],
       ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Center(
-            child: Text(
-              _recordedText.isEmpty 
-                  ? (_isRecording ? 'Listening...' : 'Record your thoughts') 
-                  : _recordedText,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-                color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark,
-                height: 1.4,
-              ),
+          Text(
+            _isRecording ? 'Listening Intently...' : 'Tap to Speak',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark,
             ),
           ),
-          const SizedBox(height: 32),
-          // Waveform centered
-          if (_isRecording)
-            SizedBox(
-              height: 40,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: _waveformValues.map((h) => 
-                  Container(
-                    width: 3,
-                    height: 40 * h,
-                    margin: const EdgeInsets.symmetric(horizontal: 2),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryAccent,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  )
-                ).toList(),
-              ),
-            ).animate().fadeIn(),
-          const SizedBox(height: 32),
-          // Recording button centered with pulse animation
+          const SizedBox(height: 12),
+          Text(
+            _isRecording ? 'MindBloom is analyzing your tone and words...' : 'Express yourself. Your voice remains private.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13,
+              color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark,
+            ),
+          ),
+          const SizedBox(height: 48),
+          
+          // Recording Button UI
           Center(
             child: GestureDetector(
               onTap: _toggleRecording,

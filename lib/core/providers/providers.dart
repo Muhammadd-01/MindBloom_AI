@@ -278,16 +278,22 @@ class AuthNotifier extends StateNotifier<AuthState> {
       
       state = state.copyWith(isLoading: true);
       final fileBytes = await image.readAsBytes();
-      final fileName = 'avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final fileName = 'avatar_${state.user!.uid}_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final storagePath = '${state.user!.uid}/$fileName';
 
-      // 2. Upload to Supabase (using folder structure from guide)
+      // 2. Upload to Supabase
       final supabase = Supabase.instance.client;
-      await supabase.storage.from('profile-images').uploadBinary(
+      
+      // Use uploadBinary for bytes
+      final response = await supabase.storage.from('profile-images').uploadBinary(
         storagePath,
         fileBytes,
         fileOptions: const FileOptions(cacheControl: '3600', upsert: true),
       );
+
+      if (response.isEmpty) {
+        throw Exception('Upload returned empty path');
+      }
 
       // 3. Get Public URL
       final String publicUrl = supabase.storage.from('profile-images').getPublicUrl(storagePath);
@@ -299,10 +305,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } catch (e) {
       print('Supabase Profile Upload Error: $e');
       state = state.copyWith(isLoading: false, error: 'Upload failed: ${e.toString()}');
+      AppNotifications.show(null, message: 'Image upload failed. Please check your connection.', type: NotificationType.error);
     }
   }
 
-  /// Pick an image and upload to Supabase 'journal-attachments' bucket
   Future<String?> uploadJournalImage(ImageSource source) async {
     if (state.user == null) return null;
     
@@ -320,16 +326,20 @@ class AuthNotifier extends StateNotifier<AuthState> {
       
       state = state.copyWith(isLoading: true);
       final fileBytes = await image.readAsBytes();
-      final fileName = 'journal_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final fileName = 'journal_${state.user!.uid}_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final storagePath = '${state.user!.uid}/$fileName';
 
       // 2. Upload to Supabase
       final supabase = Supabase.instance.client;
-      await supabase.storage.from('journal-attachments').uploadBinary(
+      final response = await supabase.storage.from('journal-attachments').uploadBinary(
         storagePath,
         fileBytes,
         fileOptions: const FileOptions(cacheControl: '3600', upsert: true),
       );
+
+      if (response.isEmpty) {
+        throw Exception('Journal upload returned empty path');
+      }
 
       // 3. Get Public URL
       final String publicUrl = supabase.storage.from('journal-attachments').getPublicUrl(storagePath);
@@ -341,6 +351,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } catch (e) {
       print('Supabase Journal Upload Error: $e');
       state = state.copyWith(isLoading: false, error: 'Journal image upload failed: ${e.toString()}');
+      AppNotifications.show(null, message: 'Failed to attach image to reflection.', type: NotificationType.error);
       return null;
     }
   }
