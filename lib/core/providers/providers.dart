@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
@@ -6,6 +7,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
 import '../utils/app_notifications.dart';
@@ -111,18 +113,33 @@ class AuthNotifier extends StateNotifier<AuthState> {
         password: password,
       );
 
-      final user = UserModel(
-        uid: userCredential.user!.uid,
-        email: email,
-        displayName: name,
-        createdAt: DateTime.now(),
-        lastActiveAt: DateTime.now(),
-      );
+      UserModel userModel;
+      
+      // SPECIAL ACCESS: For user GeniusAISquad@gmail.com, grant full Elite access regardless of setup
+      if (email.toLowerCase() == 'geniusaisquad@gmail.com') {
+        userModel = UserModel(
+          uid: userCredential.user!.uid,
+          email: email,
+          displayName: name,
+          subscriptionTier: SubscriptionTier.forest, // Full access (Elite/Forest)
+          createdAt: DateTime.now(),
+          lastActiveAt: DateTime.now(),
+        );
+      } else {
+        userModel = UserModel(
+          uid: userCredential.user!.uid,
+          email: email,
+          displayName: name,
+          subscriptionTier: SubscriptionTier.seedling, // Default free
+          createdAt: DateTime.now(),
+          lastActiveAt: DateTime.now(),
+        );
+      }
 
       // Save to Firestore
-      await _db.collection('users').doc(user.uid).set(user.toMap());
+      await _db.collection('users').doc(userModel.uid).set(userModel.toMap());
 
-      state = state.copyWith(isLoggedIn: true, user: user, isInitialized: true, isLoading: false);
+      state = state.copyWith(isLoggedIn: true, user: userModel, isInitialized: true, isLoading: false);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
       rethrow;
@@ -159,9 +176,19 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final auth.UserCredential userCredential = await _auth.signInWithCredential(credential);
       final firebaseUser = userCredential.user!;
 
-      // Sync with Firestore
+      // Fetch user data
       final doc = await _db.collection('users').doc(firebaseUser.uid).get();
-      if (!doc.exists) {
+      if (doc.exists) {
+        UserModel user = UserModel.fromMap(doc.data()!);
+        
+        // SPECIAL ACCESS: Re-verify special user on login
+        if (firebaseUser.email?.toLowerCase() == 'geniusaisquad@gmail.com') {
+          user = user.copyWith(subscriptionTier: SubscriptionTier.forest);
+          await _db.collection('users').doc(user.uid).update({'subscriptionTier': 'forest'});
+        }
+        
+        state = state.copyWith(user: user, isLoading: false);
+      } else {
         final newUser = UserModel(
           uid: firebaseUser.uid,
           email: firebaseUser.email ?? '',
@@ -278,34 +305,50 @@ class AuthNotifier extends StateNotifier<AuthState> {
       
       state = state.copyWith(isLoading: true);
       final fileBytes = await image.readAsBytes();
-      final fileName = 'avatar_${state.user!.uid}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      
+      // Use a consistent naming convention
+      final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+      final fileName = 'avatar_$timestamp.jpg';
       final storagePath = '${state.user!.uid}/$fileName';
+
+      if (kDebugMode) print('📤 Supabase: Starting profile upload to path: $storagePath');
 
       // 2. Upload to Supabase
       final supabase = Supabase.instance.client;
       
-      // Use uploadBinary for bytes
-      final response = await supabase.storage.from('profile-images').uploadBinary(
+      // Explicitly set content type and use upsert
+      await supabase.storage.from('profile-images').uploadBinary(
         storagePath,
         fileBytes,
-        fileOptions: const FileOptions(cacheControl: '3600', upsert: true),
+        fileOptions: const FileOptions(
+          cacheControl: '3600', 
+          upsert: true,
+          contentType: 'image/jpeg',
+        ),
       );
-
-      if (response.isEmpty) {
-        throw Exception('Upload returned empty path');
-      }
 
       // 3. Get Public URL
       final String publicUrl = supabase.storage.from('profile-images').getPublicUrl(storagePath);
-      print('Profile upload success: $publicUrl');
+      
+      if (kDebugMode) print('✅ Supabase: Profile upload success. URL: $publicUrl');
 
       // 4. Update Profile in Firestore
       await updateProfile(photoUrl: publicUrl);
+      AppNotifications.show(null, message: 'Profile updated successfully!', type: NotificationType.success);
       
     } catch (e) {
-      print('Supabase Profile Upload Error: $e');
+      if (kDebugMode) print('❌ Supabase Profile Upload Error: $e');
       state = state.copyWith(isLoading: false, error: 'Upload failed: ${e.toString()}');
-      AppNotifications.show(null, message: 'Image upload failed. Please check your connection.', type: NotificationType.error);
+      
+      // Friendly message with technical hint for developer
+      String errorMsg = 'Image upload failed. ';
+      if (e.toString().contains('403')) {
+        errorMsg += 'Check Supabase RLS Policies for "anon" role.';
+      } else {
+        errorMsg += 'Please check your connection.';
+      }
+      
+      AppNotifications.show(null, message: errorMsg, type: NotificationType.error);
     }
   }
 
@@ -326,32 +369,43 @@ class AuthNotifier extends StateNotifier<AuthState> {
       
       state = state.copyWith(isLoading: true);
       final fileBytes = await image.readAsBytes();
-      final fileName = 'journal_${state.user!.uid}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      
+      final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+      final fileName = 'journal_$timestamp.jpg';
       final storagePath = '${state.user!.uid}/$fileName';
+
+      if (kDebugMode) print('📤 Supabase: Starting journal upload to path: $storagePath');
 
       // 2. Upload to Supabase
       final supabase = Supabase.instance.client;
-      final response = await supabase.storage.from('journal-attachments').uploadBinary(
+      await supabase.storage.from('journal-attachments').uploadBinary(
         storagePath,
         fileBytes,
-        fileOptions: const FileOptions(cacheControl: '3600', upsert: true),
+        fileOptions: const FileOptions(
+          cacheControl: '3600', 
+          upsert: true,
+          contentType: 'image/jpeg',
+        ),
       );
-
-      if (response.isEmpty) {
-        throw Exception('Journal upload returned empty path');
-      }
 
       // 3. Get Public URL
       final String publicUrl = supabase.storage.from('journal-attachments').getPublicUrl(storagePath);
-      print('Journal upload success: $publicUrl');
+      
+      if (kDebugMode) print('✅ Supabase: Journal upload success. URL: $publicUrl');
       
       state = state.copyWith(isLoading: false);
       return publicUrl;
       
     } catch (e) {
-      print('Supabase Journal Upload Error: $e');
-      state = state.copyWith(isLoading: false, error: 'Journal image upload failed: ${e.toString()}');
-      AppNotifications.show(null, message: 'Failed to attach image to reflection.', type: NotificationType.error);
+      if (kDebugMode) print('❌ Supabase Journal Upload Error: $e');
+      state = state.copyWith(isLoading: false, error: 'Journal image upload failed');
+      
+      String errorMsg = 'Failed to attach image. ';
+      if (e.toString().contains('403')) {
+        errorMsg += 'Check Supabase RLS Policies.';
+      }
+      
+      AppNotifications.show(null, message: errorMsg, type: NotificationType.error);
       return null;
     }
   }
@@ -442,7 +496,7 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
           dominantTone: 'Observational',
           entriesCount: 0,
           suggestions: [
-            'Welcome to MindBloom AI! Record your first thought to generate your daily positivity score.',
+            'Welcome to MindBloom! Record your first thought to generate your daily positivity score.',
             'Consistency is key to pattern recognition.',
           ],
         );
@@ -733,7 +787,7 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
       if (!canAuthenticate) return true; // Fail-safe for demo
 
       return await auth.authenticate(
-        localizedReason: 'Please authenticate to access MindBloom AI',
+        localizedReason: 'Please authenticate to access MindBloom',
       );
     } catch (e) {
       return true; // Fail-safe for demo/simulators

@@ -2,14 +2,15 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/models.dart';
 
-/// Service for communicating with MindBloom AI and Backend
+/// Service for communicating with MindBloom and Backend
 class ApiService {
   static const String _baseUrl = 'http://localhost:8000';
   
   // ── Gemini Configuration ──
-  static const String _geminiKey = 'AIzaSyBEgPs60GjT986kFhMccrCvEXi1N5w1KOI';
+  static final String _geminiKey = dotenv.env['GEMINI_API_KEY'] ?? '';
   static final _model = GenerativeModel(
     model: 'gemini-1.5-flash',
     apiKey: _geminiKey,
@@ -47,7 +48,7 @@ class ApiService {
         );
         final data = jsonDecode(jsonStr);
         
-        if (kDebugMode) print('✅ MindBloom AI Analysis Success: ${data['sentiment']}');
+        if (kDebugMode) print('✅ MindBloom Analysis Success: ${data['sentiment']}');
 
         return AnalysisResult(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -98,10 +99,10 @@ class ApiService {
     }
   }
 
-  /// AI chatbot coach powered by MindBloom AI
+  /// AI chatbot coach powered by MindBloom
   static Future<String> chatWithCoach(String message) async {
     try {
-      final prompt = 'You are MindBloom AI Coach. Be empathetic, Islamic-centered where appropriate, and focus on behavioral change. User says: "$message"';
+      final prompt = 'You are MindBloom Coach. Be empathetic, Islamic-centered where appropriate, and focus on behavioral change. User says: "$message"';
       final response = await _model.generateContent([Content.text(prompt)]);
       return response.text ?? _simulateChatResponse(message);
     } catch (e) {

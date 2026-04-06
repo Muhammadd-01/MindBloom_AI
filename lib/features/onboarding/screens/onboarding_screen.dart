@@ -261,7 +261,7 @@ class _OnboardingPage extends StatelessWidget {
           
           // Title
           Text(
-            page.title,
+            'MindBloom',
             style: TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.bold,

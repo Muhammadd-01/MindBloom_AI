@@ -210,15 +210,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       ShaderMask(
                         shaderCallback: (bounds) =>
                             AppColors.primaryGradient.createShader(bounds),
-                        child: const Text(
-                          'AI',
-                          style: TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
+                        child: const Text('MindBloom', style: TextStyle(color: Colors.white, fontSize: 40, fontWeight: FontWeight.bold, letterSpacing: 2)),
                       ),
                       const SizedBox(height: 16),
                       Text(

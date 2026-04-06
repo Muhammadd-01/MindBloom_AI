@@ -324,14 +324,7 @@ class ReportScreen extends ConsumerWidget {
           children: [
             const Text('💡', style: TextStyle(fontSize: 18)),
             const SizedBox(width: 8),
-            Text(
-              'Smart Feedback',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark,
-              ),
-            ),
+            const Text('MindBloom Analysis', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
           ],
         ),
         const SizedBox(height: 14),

@@ -7,17 +7,22 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'core/providers/providers.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-Future<void> main() async {
+void main() async {
+  // Ensure Flutter is initialized
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Load environment variables
+  await dotenv.load(fileName: ".env");
   
   // Initialize Firebase
   await Firebase.initializeApp();
   
   // Initialize Supabase
   await Supabase.initialize(
-    url: 'https://rrrbobevxfsjjokorhvb.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJycmJvYmV2eGZzampva29yaHZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyOTQxNzQsImV4cCI6MjA5MDg3MDE3NH0.5CfbkQ2lzpKbP-EsRsuNHNrONflLm0gSn4iNnn4_RAE',
+    url: dotenv.env['SUPABASE_URL'] ?? '',
+    anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
   );
   
   // Initialize Shared Preferences
@@ -54,7 +59,7 @@ class MindBloomApp extends ConsumerWidget {
 
     return MaterialApp(
       scaffoldMessengerKey: snackbarKey,
-      title: 'MindBloom AI',
+      title: 'MindBloom',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,

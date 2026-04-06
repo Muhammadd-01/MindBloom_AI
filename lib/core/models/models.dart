@@ -35,7 +35,7 @@ class UserModel {
     required this.email,
     this.displayName = '',
     this.photoUrl = '',
-    this.subscriptionTier = SubscriptionTier.forest,
+    this.subscriptionTier = SubscriptionTier.seedling,
     this.streak = 0,
     this.level = 1,
     this.totalPoints = 0,
@@ -61,7 +61,7 @@ class UserModel {
     email: map['email'] ?? '',
     displayName: map['displayName'] ?? '',
     photoUrl: map['photoUrl'] ?? '',
-    subscriptionTier: SubscriptionTier.forest, // Temporarily forced for presentation
+    subscriptionTier: SubscriptionTier.fromString(map['subscriptionTier']),
     streak: map['streak'] ?? 0,
     level: map['level'] ?? 1,
     totalPoints: map['totalPoints'] ?? 0,

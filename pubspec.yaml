@@ -4,7 +4,7 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.9.2
+  sdk: '>=3.7.0 <4.0.0'
 
 dependencies:
   flutter:
@@ -16,7 +16,9 @@ dependencies:
   flutter_riverpod: ^2.6.1
   
   # Charts
+  http: ^1.2.2
   fl_chart: ^0.70.2
+  flutter_dotenv: ^5.1.0
   
   # UI/UX
   google_fonts: ^6.2.1
@@ -24,9 +26,6 @@ dependencies:
   shimmer: ^3.0.0
   flutter_animate: ^4.5.2
   percent_indicator: ^4.2.3
-  
-  # HTTP
-  http: ^1.2.2
   
   # Local Storage
   shared_preferences: ^2.3.4
@@ -69,3 +68,4 @@ flutter:
   assets:
     - assets/images/
     - assets/icons/
+    - .env

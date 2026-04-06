@@ -959,11 +959,11 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
           ),
         ),
         const SizedBox(height: 6),
-        Text(
-          'Select your current mood (optional)',
+        const Text(
+          'MindBloom captures your thoughts and guides you toward positivity.',
           style: TextStyle(
-            fontSize: 13, 
-            color: isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark
+            fontSize: 16,
+            color: AppColors.textSecondary,
           ),
         ),
         const SizedBox(height: 14),
