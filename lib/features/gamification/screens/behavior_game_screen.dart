@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/providers/providers.dart';
-import '../../../core/services/api_service.dart';
+import '../../../core/services/local_ai_engine.dart';
 
 class BehaviorGameScreen extends ConsumerStatefulWidget {
   const BehaviorGameScreen({super.key});
@@ -27,7 +27,7 @@ class _BehaviorGameScreenState extends ConsumerState<BehaviorGameScreen> {
     if (!mounted) return;
     setState(() => _isLoading = true);
     
-    final challenge = await MindBloomApiService.generateAIChallenge();
+    final challenge = await MindBloomLocalAIEngine.generateAIChallenge();
     
     if (!mounted) return;
     setState(() {

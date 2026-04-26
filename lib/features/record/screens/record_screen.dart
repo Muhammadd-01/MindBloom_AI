@@ -55,11 +55,11 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
   void initState() {
     super.initState();
     _pulseController = AnimationController(
-      duration: const Duration(seconds: 1),
+      duration: const Duration(seconds: 4), // Calm mindfulness breathing
       vsync: this,
     )..repeat(reverse: true);
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.3).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    _pulseAnimation = Tween<double>(begin: 0.95, end: 1.15).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOutSine),
     );
 
     _waveformController = AnimationController(

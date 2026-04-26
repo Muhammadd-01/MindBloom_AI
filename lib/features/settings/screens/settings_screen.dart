@@ -4,6 +4,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/models/models.dart';
 import '../../../core/widgets/loading_overlay.dart';
+import '../../../core/services/guardian_service.dart';
 import '../../auth/screens/auth_screen.dart';
 import '../widgets/chatbot_sheet.dart';
 import 'edit_profile_screen.dart';
@@ -100,6 +101,29 @@ class SettingsScreen extends ConsumerWidget {
                         settings.trackingEnabled,
                         isDarkMode,
                         () => ref.read(settingsProvider.notifier).toggleTracking(),
+                      ),
+                      _settingsToggle(
+                        'Guardian Mode (Beta)',
+                        'Monitor incoming chats for distress',
+                        Icons.shield_rounded,
+                        settings.guardianModeEnabled,
+                        isDarkMode,
+                        () async {
+                          if (!settings.guardianModeEnabled) {
+                            // User wants to turn it on, request permission
+                            final granted = await GuardianService.requestPermission();
+                            if (granted) {
+                              GuardianService.startListening();
+                              ref.read(settingsProvider.notifier).toggleGuardianMode();
+                              if (context.mounted) _showSnackBar(context, 'Guardian Mode activated');
+                            } else {
+                              if (context.mounted) _showSnackBar(context, 'Permission denied');
+                            }
+                          } else {
+                            // User wants to turn it off
+                            ref.read(settingsProvider.notifier).toggleGuardianMode();
+                          }
+                        },
                       ),
                     ], isDarkMode),
 

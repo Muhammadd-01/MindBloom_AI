@@ -4,7 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/models/models.dart';
-import '../../../core/services/api_service.dart';
+import '../../../core/services/local_ai_engine.dart';
 
 class AssessmentFlowScreen extends ConsumerStatefulWidget {
   final String type;
@@ -118,7 +118,7 @@ class _AssessmentFlowScreenState extends ConsumerState<AssessmentFlowScreen> {
     try {
       // Interpret with MindBloom AI
       final prompt = "Analyze these results for a ${widget.type.toUpperCase()} psychological test. Total Score: $total, Level: $level. Questions and answers are: $_answers. Give a brief, supportive behavioral interpretation and 3 actionable tips for improvement. Keep it professional but warm.";
-      final interpretation = await MindBloomApiService.getRawAIResponse(prompt);
+      final interpretation = await MindBloomLocalAIEngine.getRawAIResponse(prompt);
 
       final user = ref.read(authStateProvider).user!;
       final assessment = PsychologicalAssessment(

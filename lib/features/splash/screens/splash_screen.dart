@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/providers/providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 /// Splash screen with animated logo and tagline
 class SplashScreen extends ConsumerStatefulWidget {
@@ -49,13 +50,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _textController, curve: Curves.easeOut));
 
-    // Continuous pulse glow behind logo
+    // Mindfulness "Breathing" pulse behind logo (4 seconds inhale, 4 seconds exhale)
     _pulseController = AnimationController(
-      duration: const Duration(seconds: 2),
+      duration: const Duration(seconds: 4),
       vsync: this,
     )..repeat(reverse: true);
-    _pulseScale = Tween<double>(begin: 0.8, end: 1.2).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    _pulseScale = Tween<double>(begin: 0.85, end: 1.4).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOutSine),
     );
 
     _logoController.forward();
@@ -90,24 +91,33 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Pulse glow behind logo
+                // Multi-layered mindfulness ripples
                 AnimatedBuilder(
                   animation: _pulseScale,
                   builder: (context, child) {
-                    return Container(
-                      width: 160 * _pulseScale.value,
-                      height: 160 * _pulseScale.value,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: RadialGradient(
-                          colors: [
-                            AppColors.primaryAccent.withValues(alpha: 0.15),
-                            AppColors.primaryAccent.withValues(alpha: 0.05),
-                            Colors.transparent,
-                          ],
+                    return Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // Outer subtle ripple
+                        Container(
+                          width: 200 * _pulseScale.value,
+                          height: 200 * _pulseScale.value,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.primaryAccent.withValues(alpha: 0.05),
+                          ),
                         ),
-                      ),
-                      child: child,
+                        // Inner prominent ripple
+                        Container(
+                          width: 150 * _pulseScale.value,
+                          height: 150 * _pulseScale.value,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.primaryAccent.withValues(alpha: 0.1),
+                          ),
+                        ),
+                        if (child != null) child,
+                      ],
                     );
                   },
                   child: ScaleTransition(
@@ -128,9 +138,46 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                           ],
                         ),
                         child: ClipOval(
-                          child: Image.asset(
-                            'assets/images/app_logo.png',
-                            fit: BoxFit.cover,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              // Left half of the original image (Brain side)
+                              ClipRect(
+                                child: Align(
+                                  alignment: Alignment.centerLeft,
+                                  widthFactor: 0.5,
+                                  child: Image.asset(
+                                    'assets/images/app_logo.png',
+                                    width: 120,
+                                    height: 120,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              )
+                              .animate(delay: 600.ms)
+                              .scale(duration: 800.ms, curve: Curves.elasticOut)
+                              .slideX(begin: 0.5, end: 0, duration: 600.ms, curve: Curves.easeOutCubic)
+                              .fadeIn(duration: 400.ms),
+                              
+                              // Right half of the original image (Plant side)
+                              ClipRect(
+                                child: Align(
+                                  alignment: Alignment.centerRight,
+                                  widthFactor: 0.5,
+                                  child: Image.asset(
+                                    'assets/images/app_logo.png',
+                                    width: 120,
+                                    height: 120,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              )
+                              .animate(delay: 300.ms)
+                              .scale(duration: 800.ms, curve: Curves.elasticOut)
+                              .slideX(begin: -0.5, end: 0, duration: 600.ms, curve: Curves.easeOutCubic)
+                              .fadeIn(duration: 400.ms),
+                            ],
                           ),
                         ),
                       ),

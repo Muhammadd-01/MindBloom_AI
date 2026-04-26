@@ -14,12 +14,17 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'firebase_options.dart';
 
+import 'core/services/guardian_service.dart';
+
 void main() async {
   // Ensure Flutter is initialized
   WidgetsFlutterBinding.ensureInitialized();
   
   // Load environment variables
   await dotenv.load(fileName: ".env");
+
+  // Initialize Guardian Mode Background Service
+  await GuardianService.init();
   
   // Initialize Firebase
   await Firebase.initializeApp(
@@ -46,7 +51,7 @@ void main() async {
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.light,
-    systemNavigationBarColor: Color(0xFF0F172A),
+    systemNavigationBarColor: Color(0xFF12241A), // Matches new dark secondaryBg
     systemNavigationBarIconBrightness: Brightness.light,
   ));
 

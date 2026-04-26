@@ -42,37 +42,49 @@ class LoadingOverlay extends StatelessWidget {
     return Stack(
       alignment: Alignment.center,
       children: [
-        // Outer pulsing ring
+        // Outer breathing bloom
         _TweenAnimation(
-          duration: const Duration(seconds: 2),
+          duration: const Duration(seconds: 3), // Slow, deep breath
           builder: (context, value) {
+            final easedValue = Curves.easeInOutSine.transform(value);
             return Container(
-              width: 80 + (40 * value),
-              height: 80 + (40 * value),
+              width: 80 + (60 * easedValue),
+              height: 80 + (60 * easedValue),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: AppColors.primaryAccent.withValues(alpha: 1.0 - value),
-                  width: 2,
-                ),
+                color: AppColors.primaryAccent.withValues(alpha: 0.05 + (0.1 * easedValue)),
               ),
             );
           },
         ),
-        // Inner spinning ring
-        const SizedBox(
-          width: 60,
-          height: 60,
-          child: CircularProgressIndicator(
-            strokeWidth: 3,
-            valueColor: AlwaysStoppedAnimation(AppColors.primaryAccent),
-          ),
-        ),
-        // Center icon
-        const Icon(
-          Icons.auto_awesome,
-          color: Colors.white,
-          size: 24,
+        // Inner core breathing
+        _TweenAnimation(
+          duration: const Duration(seconds: 3),
+          builder: (context, value) {
+            final easedValue = Curves.easeInOutSine.transform(value);
+            return Container(
+              width: 60 + (20 * easedValue),
+              height: 60 + (20 * easedValue),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.primaryAccent.withValues(alpha: 0.2 + (0.3 * easedValue)),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryAccent.withValues(alpha: 0.3 * easedValue),
+                    blurRadius: 20 * easedValue,
+                    spreadRadius: 5 * easedValue,
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Icon(
+                  Icons.spa, // Nature/Mindfulness icon (lotus)
+                  color: Colors.white.withValues(alpha: 0.8 + (0.2 * easedValue)),
+                  size: 30 + (5 * easedValue),
+                ),
+              ),
+            );
+          },
         ),
       ],
     );
@@ -99,8 +111,9 @@ class _TweenAnimationState extends State<_TweenAnimation>
   @override
   void initState() {
     super.initState();
+    // Use reverse: true for a breathing inhale/exhale effect
     _controller = AnimationController(vsync: this, duration: widget.duration)
-      ..repeat();
+      ..repeat(reverse: true);
   }
 
   @override

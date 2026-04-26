@@ -8,7 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:local_auth/local_auth.dart';
 import '../models/models.dart';
-import '../services/api_service.dart';
+import '../services/local_ai_engine.dart';
 import '../utils/app_notifications.dart' as notify;
 
 // ── Auth State ──
@@ -809,7 +809,7 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
     state = const AnalysisState(isAnalyzing: true);
 
     try {
-      final result = await MindBloomApiService.analyzeText(
+      final result = await MindBloomLocalAIEngine.analyzeText(
         text: text,
         userId: userId,
         inputType: inputType,
@@ -818,7 +818,7 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
       // Add the imageUrl if provided
       final finalResult = imageUrl != null ? result.copyWith(imageUrl: imageUrl) : result;
 
-      final feedback = await MindBloomApiService.getFeedback(
+      final feedback = await MindBloomLocalAIEngine.getFeedback(
         sentiment: finalResult.sentiment,
         tone: finalResult.tone,
         score: finalResult.positivityScore,
@@ -866,6 +866,7 @@ class SettingsState {
   final bool islamicContentEnabled;
   final bool twoFactorEnabled;
   final bool biometricEnabled;
+  final bool guardianModeEnabled;
   final SubscriptionTier subscriptionTier;
   final bool isDarkMode;
   final bool isPassiveMode;
@@ -876,6 +877,7 @@ class SettingsState {
     this.islamicContentEnabled = true,
     this.twoFactorEnabled = false,
     this.biometricEnabled = true,
+    this.guardianModeEnabled = false,
     this.subscriptionTier = SubscriptionTier.seedling,
     this.isDarkMode = false,
     this.isPassiveMode = false,
@@ -887,6 +889,7 @@ class SettingsState {
     bool? islamicContentEnabled,
     bool? twoFactorEnabled,
     bool? biometricEnabled,
+    bool? guardianModeEnabled,
     SubscriptionTier? subscriptionTier,
     bool? isDarkMode,
     bool? isPassiveMode,
@@ -896,6 +899,7 @@ class SettingsState {
     islamicContentEnabled: islamicContentEnabled ?? this.islamicContentEnabled,
     twoFactorEnabled: twoFactorEnabled ?? this.twoFactorEnabled,
     biometricEnabled: biometricEnabled ?? this.biometricEnabled,
+    guardianModeEnabled: guardianModeEnabled ?? this.guardianModeEnabled,
     subscriptionTier: subscriptionTier ?? this.subscriptionTier,
     isDarkMode: isDarkMode ?? this.isDarkMode,
     isPassiveMode: isPassiveMode ?? this.isPassiveMode,
@@ -921,6 +925,9 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
   void toggleTwoFactor() => state = state.copyWith(twoFactorEnabled: !state.twoFactorEnabled);
   void toggleBiometric() => state = state.copyWith(biometricEnabled: !state.biometricEnabled);
   void togglePassiveMode() => state = state.copyWith(isPassiveMode: !state.isPassiveMode);
+  void toggleGuardianMode() {
+    state = state.copyWith(guardianModeEnabled: !state.guardianModeEnabled);
+  }
   void toggleIslamicContent() {
     state = state.copyWith(islamicContentEnabled: !state.islamicContentEnabled);
   }
@@ -1086,7 +1093,7 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
     state = [...state, ChatMessage(text: text, isUser: true, timestamp: DateTime.now())];
 
     // 3. Get AI response with context
-    final response = await MindBloomApiService.chatWithCoach(text, psychologicalContext: psychologicalContext);
+    final response = await MindBloomLocalAIEngine.chatWithCoach(text, psychologicalContext: psychologicalContext);
     state = [...state, ChatMessage(text: response, isUser: false, timestamp: DateTime.now())];
   }
 }

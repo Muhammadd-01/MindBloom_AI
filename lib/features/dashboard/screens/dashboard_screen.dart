@@ -9,7 +9,7 @@ import '../../../core/models/models.dart';
 import '../../settings/screens/notifications_screen.dart';
 import '../../gamification/screens/behavior_game_screen.dart';
 import 'recent_activity_screen.dart';
-import '../../../core/services/api_service.dart';
+import '../../../core/services/local_ai_engine.dart';
 
 /// Main dashboard showing positivity score, insights, and weekly trends
 class DashboardScreen extends ConsumerWidget {
@@ -846,7 +846,7 @@ class DashboardScreen extends ConsumerWidget {
 
   Widget _buildAICoachCard(bool isDarkMode) {
     return FutureBuilder<String>(
-      future: MindBloomApiService.chatWithCoach('Give me a one-sentence behavioral positivity tip for today.'),
+      future: MindBloomLocalAIEngine.chatWithCoach('Give me a one-sentence behavioral positivity tip for today.'),
       builder: (context, snapshot) {
         final isLoading = snapshot.connectionState == ConnectionState.waiting;
         final tip = snapshot.data ?? 'Believe in yourself and take one small step towards your goal today.';

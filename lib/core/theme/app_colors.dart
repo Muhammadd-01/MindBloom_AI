@@ -1,42 +1,42 @@
 import 'package:flutter/material.dart';
 
-/// Psychology-based color palette for calm, trust, and growth
+/// Psychology-based color palette for calm, trust, and growth (Nature & Bloom Theme)
 class AppColors {
   AppColors._();
 
   // ── Primary Backgrounds (Dark) ──
-  static const Color primaryBg = Color(0xFF06080F);      // Deep dark – focus & calm
-  static const Color secondaryBg = Color(0xFF0F172A);     // Dark blue-gray – depth
+  static const Color primaryBg = Color(0xFF041810);      // Very deep forest green
+  static const Color secondaryBg = Color(0xFF082B1D);     // Deep nature green
 
   // ── Primary Backgrounds (Light) ──
-  static const Color primaryBgLight = Color(0xFFF8FAFC);  // Near white
-  static const Color secondaryBgLight = Color(0xFFF1F5F9); // Very light gray-blue
+  static const Color primaryBgLight = Color(0xFFF0FDF4);  // Very light, airy mint/green
+  static const Color secondaryBgLight = Color(0xFFDCFCE7); // Soft light green (Green 100)
 
   // ── Accents ──
-  static const Color primaryAccent = Color(0xFF22C55E);   // Green – growth, positivity
-  static const Color secondaryAccent = Color(0xFF3B82F6); // Blue – trust, intelligence
-  static const Color highlight = Color(0xFFF59E0B);       // Amber – attention, action (CTA)
+  static const Color primaryAccent = Color(0xFF34D399);   // Soft but vibrant green – growth, bloom
+  static const Color secondaryAccent = Color(0xFF2DD4BF); // Soft Teal – clarity, mind
+  static const Color highlight = Color(0xFFF472B6);       // Pink (Bloom) – warmth, creativity
 
   // ── Text (Dark Mode) ──
-  static const Color textPrimary = Color(0xFFF8FAFC);     // Near white
-  static const Color textSecondary = Color(0xFF94A3B8);   // Muted gray
+  static const Color textPrimary = Color(0xFFF0FDF4);     // Light mint
+  static const Color textSecondary = Color(0xFFA7F3D0);   // Muted bright green
 
   // ── Text (Light Mode) ──
-  static const Color textPrimaryDark = Color(0xFF0F172A);   // Deep navy/black
-  static const Color textSecondaryDark = Color(0xFF64748B); // Muted gray-blue
+  static const Color textPrimaryDark = Color(0xFF022C22);   // Darkest forest green
+  static const Color textSecondaryDark = Color(0xFF065F46); // Medium forest green
 
   // ── Indicators ──
-  static const Color negative = Color(0xFFEF4444);        // Soft red
+  static const Color negative = Color(0xFFF43F5E);        // Soft rose
   static const Color positive = Color(0xFF10B981);        // Emerald
 
   // ── Surface / Card (Dark) ──
-  static const Color cardBg = Color(0xFF1E293B);
-  static const Color cardBgLight = Color(0xFF334155);
-  static const Color surfaceLight = Color(0xFF475569);
+  static const Color cardBg = Color(0xFF064E3B);
+  static const Color cardBgLight = Color(0xFF047857);
+  static const Color surfaceLight = Color(0xFF059669);
 
   // ── Surface / Card (Light) ──
   static const Color cardBgWhite = Colors.white;
-  static const Color cardBgLightGray = Color(0xFFE2E8F0);
+  static const Color cardBgLightGray = Color(0xFFD1FAE5);
 
   // ── Gradients ──
   static const LinearGradient primaryGradient = LinearGradient(
@@ -48,13 +48,13 @@ class AppColors {
   static const LinearGradient blueGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [secondaryAccent, Color(0xFF6366F1)],
+    colors: [secondaryAccent, Color(0xFF0D9488)],
   );
 
   static const LinearGradient amberGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [highlight, Color(0xFFF97316)],
+    colors: [highlight, Color(0xFFEC4899)],
   );
 
   static const LinearGradient darkGradient = LinearGradient(
@@ -85,13 +85,13 @@ class AppColors {
   static const LinearGradient roseGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFFF43F5E), Color(0xFFFB923C)],
+    colors: [Color(0xFF10B981), Color(0xFF34D399)],
   );
 
   static const LinearGradient cosmicGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFF0F172A), Color(0xFF1E293B), Color(0xFF334155)],
+    colors: [Color(0xFF12241A), Color(0xFF1B3023), Color(0xFF2C4A36)],
   );
 
   // ── Glass Decorations ──
