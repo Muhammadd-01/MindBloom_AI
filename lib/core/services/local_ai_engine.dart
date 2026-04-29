@@ -275,75 +275,46 @@ class MindBloomLocalAIEngine {
   }
 
   /// AI chatbot coach powered by advanced Rogerian, CBT, and DBT Psychiatry patterns
+  /// Redirects to the Python Gemini Backend for expert-grade coaching
   static Future<String> chatWithCoach(String message, {String? psychologicalContext}) async {
-    await Future.delayed(const Duration(milliseconds: 1200)); // Simulate thoughtful typing
-    final lower = message.toLowerCase();
-    
-    // 1. Crisis Detection (Highest Priority)
-    if (isCrisis(lower)) {
-      return "I am stopping everything to tell you this: Your life has immense value, and I hear how much pain you are in right now. Please, I implore you to talk to a human who can help. You do not have to carry this unbearable weight alone. Please reach out to emergency services or someone you trust immediately. Stay with us.";
-    }
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/chatbot'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'message': message,
+          'context': psychologicalContext,
+        }),
+      );
 
-    // 2. Identify CBT Distortions in user input
-    String? foundDistortion;
-    for (var entry in PsychologicalData.cognitiveDistortions.entries) {
-      for (var word in entry.value) {
-        if (lower.contains(word)) {
-          foundDistortion = entry.key;
-          break;
-        }
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['response'] as String;
       }
-      if (foundDistortion != null) break;
-    }
-
-    if (foundDistortion != null) {
-      return PsychologicalData.cbtInterventions[foundDistortion] ?? 
-             "I hear a lot of absolute statements in what you're saying. How can we reframe this to be more realistic?";
-    }
-
-    // 3. Identify DBT Emotional Dysregulation
-    String? foundDysregulation;
-    for (var entry in PsychologicalData.emotionalDysregulation.entries) {
-      for (var word in entry.value) {
-        if (lower.contains(word)) {
-          foundDysregulation = entry.key;
-          break;
-        }
+      
+      throw Exception('Backend unavailable');
+    } catch (e) {
+      if (kDebugMode) print('⚠️ LocalAIEngine: Chat backend failed, falling back to heuristics: $e');
+      
+      // FALLBACK TO HEURISTIC ENGINE IF BACKEND IS DOWN
+      await Future.delayed(const Duration(milliseconds: 1000));
+      final lower = message.toLowerCase();
+      
+      if (isCrisis(lower)) {
+        return "I am stopping everything to tell you this: Your life has immense value, and I hear how much pain you are in right now. Please, I implore you to talk to a human who can help. Stay with us.";
       }
-      if (foundDysregulation != null) break;
+
+      // Topic/Context Routing (Trauma, Work, Relationships)
+      if (lower.contains('grief') || lower.contains('died') || lower.contains('lost') || lower.contains('trauma')) {
+        return "I am so incredibly sorry for your pain. Grief and trauma are heavy oceans to swim in. I am here to just listen.";
+      }
+
+      if (lower.contains('work') || lower.contains('boss') || lower.contains('deadline')) {
+        return "It sounds like the professional pressure you're under is becoming overwhelming. Remember that your worth is not tied to your productivity.";
+      }
+
+      return "I hear you, and I'm listening. Taking small steps every day is how we build long-term resilience. Tell me more about what's on your mind?";
     }
-
-    if (foundDysregulation != null) {
-      return PsychologicalData.dbtSkills[foundDysregulation] ?? 
-             "Your nervous system sounds incredibly overwhelmed right now. Please take a deep breath. I am right here.";
-    }
-
-    // 4. Topic/Context Routing (Trauma, Work, Relationships)
-    if (lower.contains('grief') || lower.contains('died') || lower.contains('lost') || lower.contains('trauma')) {
-      return "I am so incredibly sorry for your pain. Grief and trauma are heavy oceans to swim in. "
-          "Please remember there is no timeline for healing, and whatever you are feeling—anger, numbness, deep sorrow—is completely valid. "
-          "I am here to just listen. You don't have to fix anything right now.";
-    }
-
-    if (lower.contains('work') || lower.contains('boss') || lower.contains('deadline')) {
-      return "It sounds like the professional pressure you're under is becoming overwhelming. 💼 "
-          "When we are stressed by work, our nervous system reacts as if we are in physical danger. "
-          "As your coach, I want to remind you that your worth is not tied to your productivity. What is the smallest step you can take right now to reclaim a moment of peace?";
-    }
-
-    // 5. Rogerian Empathetic Default
-    final reflection = PsychologicalData.rogerianReflections[
-      DateTime.now().millisecondsSinceEpoch % PsychologicalData.rogerianReflections.length
-    ];
-    final probe = PsychologicalData.activeListeningProbes[
-      DateTime.now().millisecondsSinceEpoch % PsychologicalData.activeListeningProbes.length
-    ];
-
-    if (lower.contains('happy') || lower.contains('great') || lower.contains('good')) {
-      return "That is absolutely wonderful to hear! 🌟 Capturing these moments is exactly how we build long-term psychological resilience. What specifically made this moment so good?";
-    }
-
-    return "🌿 $reflection $probe";
   }
 
   /// General purpose logic parsing

@@ -70,10 +70,10 @@ class AppColors {
   );
 
   // ── Glassmorphism ──
-  static Color glassWhite = Colors.white.withValues(alpha: 0.08);
-  static Color glassBlack = Colors.black.withValues(alpha: 0.05);
-  static Color glassBorder = Colors.white.withValues(alpha: 0.12);
-  static Color glassBorderDark = Colors.black.withValues(alpha: 0.08);
+  static Color glassWhite = Colors.white.withOpacity(0.08);
+  static Color glassBlack = Colors.black.withOpacity(0.05);
+  static Color glassBorder = Colors.white.withOpacity(0.12);
+  static Color glassBorderDark = Colors.black.withOpacity(0.08);
 
   // ── More Gradients ──
   static const LinearGradient purpleGradient = LinearGradient(
@@ -97,7 +97,7 @@ class AppColors {
   // ── Glass Decorations ──
   static BoxDecoration glassDecoration({required bool isDarkMode, double blur = 10, double opacity = 0.08}) {
     return BoxDecoration(
-      color: isDarkMode ? Colors.white.withValues(alpha: opacity) : Colors.black.withValues(alpha: 0.03),
+      color: isDarkMode ? Colors.white.withOpacity(opacity) : Colors.black.withOpacity(0.03),
       borderRadius: BorderRadius.circular(24),
       border: Border.all(color: isDarkMode ? glassBorder : glassBorderDark),
     );

@@ -156,7 +156,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                           border: Border.all(color: AppColors.primaryAccent, width: 2),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primaryAccent.withValues(alpha: 0.2),
+                              color: AppColors.primaryAccent.withOpacity(0.2),
                               blurRadius: 20,
                               spreadRadius: 5,
                             ),
@@ -227,7 +227,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     ),
                     boxShadow: isDarkMode ? null : [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
+                        color: Colors.black.withOpacity(0.05),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       )
@@ -238,7 +238,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: AppColors.primaryAccent.withValues(alpha: 0.1),
+                          color: AppColors.primaryAccent.withOpacity(0.1),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
@@ -329,7 +329,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           decoration: InputDecoration(
             prefixIcon: Icon(icon, color: AppColors.primaryAccent, size: 20),
             filled: true,
-            fillColor: isDarkMode ? AppColors.cardBg : Colors.grey.withValues(alpha: 0.1),
+            fillColor: isDarkMode ? AppColors.cardBg : Colors.grey.withOpacity(0.1),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide.none,

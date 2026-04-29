@@ -104,7 +104,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                           height: 200 * _pulseScale.value,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: AppColors.primaryAccent.withValues(alpha: 0.05),
+                            color: AppColors.primaryAccent.withOpacity(0.05),
                           ),
                         ),
                         // Inner prominent ripple
@@ -113,7 +113,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                           height: 150 * _pulseScale.value,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: AppColors.primaryAccent.withValues(alpha: 0.1),
+                            color: AppColors.primaryAccent.withOpacity(0.1),
                           ),
                         ),
                         if (child != null) child,
@@ -131,7 +131,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primaryAccent.withValues(alpha: 0.4),
+                              color: AppColors.primaryAccent.withOpacity(0.4),
                               blurRadius: 30,
                               spreadRadius: 5,
                             ),
@@ -235,7 +235,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
                       valueColor: AlwaysStoppedAnimation(
-                        AppColors.primaryAccent.withValues(alpha: 0.5),
+                        AppColors.primaryAccent.withOpacity(0.5),
                       ),
                     ),
                   ),

@@ -60,12 +60,12 @@ class _MainShellState extends ConsumerState<MainShell> {
       bottomNavigationBar: Container(
         margin: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
         decoration: BoxDecoration(
-          color: AppColors.secondaryBg.withValues(alpha: 0.8),
+          color: AppColors.secondaryBg.withOpacity(0.8),
           borderRadius: BorderRadius.circular(30),
-          border: Border.all(color: AppColors.glassBorder.withValues(alpha: 0.1), width: 1.5),
+          border: Border.all(color: AppColors.glassBorder.withOpacity(0.1), width: 1.5),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.4),
+              color: Colors.black.withOpacity(0.4),
               blurRadius: 30,
               offset: const Offset(0, 10),
             ),
@@ -138,7 +138,7 @@ class _MainShellState extends ConsumerState<MainShell> {
         decoration: BoxDecoration(
           color: AppColors.secondaryBg,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-          border: Border.all(color: AppColors.glassBorder.withValues(alpha: 0.2)),
+          border: Border.all(color: AppColors.glassBorder.withOpacity(0.2)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -218,9 +218,9 @@ class _MenuOption extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
+          color: color.withOpacity(0.1),
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: color.withValues(alpha: 0.2)),
+          border: Border.all(color: color.withOpacity(0.2)),
         ),
         child: Column(
           children: [
@@ -265,7 +265,7 @@ class _NavItem extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.primaryAccent.withValues(alpha: 0.1)
+              ? AppColors.primaryAccent.withOpacity(0.1)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
@@ -318,7 +318,7 @@ class _RecordNavItem extends StatelessWidget {
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: AppColors.primaryAccent.withValues(alpha: 0.4),
+              color: AppColors.primaryAccent.withOpacity(0.4),
               blurRadius: 16,
               offset: const Offset(0, 4),
             ),

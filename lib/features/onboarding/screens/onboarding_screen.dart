@@ -216,7 +216,7 @@ class _OnboardingPage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: isDarkMode ? Colors.white.withValues(alpha: 0.03) : Colors.black.withValues(alpha: 0.03),
+              color: isDarkMode ? Colors.white.withOpacity(0.03) : Colors.black.withOpacity(0.03),
               shape: BoxShape.circle,
             ),
             child: Text(
@@ -233,7 +233,7 @@ class _OnboardingPage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             decoration: BoxDecoration(
-              color: page.iconGradient.colors.first.withValues(alpha: 0.1),
+              color: page.iconGradient.colors.first.withOpacity(0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(

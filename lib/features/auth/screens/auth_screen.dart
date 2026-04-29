@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/widgets/loading_overlay.dart';
+import '../../../core/utils/app_notifications.dart';
 
 /// Authentication screen with Login/Signup tabs, Email + Google sign-in
 class AuthScreen extends ConsumerStatefulWidget {
@@ -57,7 +58,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
         await ref.read(authStateProvider.notifier).signUp(email, password, name);
       }
     } catch (e) {
-      if (mounted) _showSnackBar(_getFirebaseErrorMessage(e.toString()));
+      if (mounted) AppNotifications.showError(context, e);
     }
   }
 
@@ -65,7 +66,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
     try {
       await ref.read(authStateProvider.notifier).loginWithGoogle();
     } catch (e) {
-      if (mounted) _showSnackBar(_getFirebaseErrorMessage(e.toString()));
+      if (mounted) AppNotifications.showError(context, e);
     }
   }
 
@@ -78,29 +79,19 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
     try {
       await ref.read(authStateProvider.notifier).sendPasswordReset(email);
       if (mounted) {
-        _showSnackBar('Password reset email sent! Check your inbox.');
+        AppNotifications.show(
+          context,
+          message: 'Password reset email sent! Check your inbox.',
+          type: NotificationType.success,
+        );
       }
     } catch (e) {
-      if (mounted) _showSnackBar(_getFirebaseErrorMessage(e.toString()));
+      if (mounted) AppNotifications.showError(context, e);
     }
   }
 
-  String _getFirebaseErrorMessage(String error) {
-    if (error.contains('user-not-found')) return 'No account found with this email';
-    if (error.contains('wrong-password') || error.contains('invalid-credential')) return 'Incorrect password';
-    if (error.contains('email-already-in-use')) return 'An account with this email already exists';
-    if (error.contains('weak-password')) return 'Password must be at least 6 characters';
-    if (error.contains('invalid-email')) return 'Please enter a valid email address';
-    if (error.contains('too-many-requests')) return 'Too many attempts. Please try again later';
-    if (error.contains('network-request-failed')) return 'No internet connection';
-    return 'Something went wrong. Please try again';
-  }
-
-
   void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    AppNotifications.show(context, message: message);
   }
 
   @override
@@ -132,7 +123,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primaryAccent.withValues(alpha: 0.3),
+                            color: AppColors.primaryAccent.withOpacity(0.3),
                             blurRadius: 20,
                           ),
                         ],

@@ -98,7 +98,7 @@ class ReportScreen extends ConsumerWidget {
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
               boxShadow: isDarkMode ? null : [
-                BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)
+                BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)
               ],
             ),
             child: Icon(
@@ -152,15 +152,15 @@ class ReportScreen extends ConsumerWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            scoreColor.withValues(alpha: 0.15),
+            scoreColor.withOpacity(0.15),
             isDarkMode ? AppColors.cardBg : Colors.white,
           ],
         ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: scoreColor.withValues(alpha: 0.2)),
+        border: Border.all(color: scoreColor.withOpacity(0.2)),
         boxShadow: [
           BoxShadow(
-            color: scoreColor.withValues(alpha: isDarkMode ? 0.1 : 0.05),
+            color: scoreColor.withOpacity(isDarkMode ? 0.1 : 0.05),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -241,7 +241,7 @@ class ReportScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
         boxShadow: isDarkMode ? null : [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)
         ],
       ),
       child: Column(
@@ -280,7 +280,7 @@ class ReportScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
         boxShadow: isDarkMode ? null : [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8)
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8)
         ],
       ),
       child: Column(
@@ -289,7 +289,7 @@ class ReportScreen extends ConsumerWidget {
           Row(
             children: [
               Icon(Icons.format_quote_rounded,
-                  color: AppColors.secondaryAccent.withValues(alpha: 0.7), size: 20),
+                  color: AppColors.secondaryAccent.withOpacity(0.7), size: 20),
               const SizedBox(width: 8),
               Text(
                 'Your Input',
@@ -358,14 +358,14 @@ class ReportScreen extends ConsumerWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            cardColor.withValues(alpha: 0.1),
+            cardColor.withOpacity(0.1),
             isDarkMode ? AppColors.glassWhite : Colors.white,
           ],
         ),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: cardColor.withValues(alpha: 0.2)),
+        border: Border.all(color: cardColor.withOpacity(0.2)),
         boxShadow: isDarkMode ? null : [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8)
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8)
         ],
       ),
       child: Column(
@@ -402,10 +402,10 @@ class ReportScreen extends ConsumerWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: AppColors.positive.withValues(alpha: 0.08),
+                color: AppColors.positive.withOpacity(0.08),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: AppColors.positive.withValues(alpha: 0.15),
+                  color: AppColors.positive.withOpacity(0.15),
                 ),
               ),
               child: Column(
@@ -451,7 +451,7 @@ class ReportScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
         boxShadow: isDarkMode ? null : [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8)
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8)
         ],
       ),
       child: Column(
@@ -474,10 +474,10 @@ class ReportScreen extends ConsumerWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
-                  color: AppColors.secondaryAccent.withValues(alpha: 0.12),
+                  color: AppColors.secondaryAccent.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: AppColors.secondaryAccent.withValues(alpha: 0.25),
+                    color: AppColors.secondaryAccent.withOpacity(0.25),
                   ),
                 ),
                 child: Text(

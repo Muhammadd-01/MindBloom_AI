@@ -152,7 +152,7 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
         border: Border.all(color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDarkMode ? 0.2 : 0.05),
+            color: Colors.black.withOpacity(isDarkMode ? 0.2 : 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -297,7 +297,7 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
             children: [
               CircleAvatar(
                 radius: 18,
-                backgroundColor: AppColors.primaryAccent.withValues(alpha: 0.2),
+                backgroundColor: AppColors.primaryAccent.withOpacity(0.2),
                 backgroundImage: review.userPhoto != null && review.userPhoto!.isNotEmpty
                     ? NetworkImage(review.userPhoto!)
                     : null,
@@ -359,7 +359,7 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
       width: double.infinity,
       child: Column(
         children: [
-          Icon(Icons.rate_review_outlined, size: 64, color: AppColors.primaryAccent.withValues(alpha: 0.5)),
+          Icon(Icons.rate_review_outlined, size: 64, color: AppColors.primaryAccent.withOpacity(0.5)),
           const SizedBox(height: 16),
           Text(
             'No reviews yet',

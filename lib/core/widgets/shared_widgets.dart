@@ -31,7 +31,7 @@ class GlassCard extends StatelessWidget {
           border: Border.all(color: AppColors.glassBorder),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.2),
+              color: Colors.black.withOpacity(0.2),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
@@ -73,7 +73,7 @@ class GradientButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: gradient.colors.first.withValues(alpha: 0.4),
+              color: gradient.colors.first.withOpacity(0.4),
               blurRadius: 16,
               offset: const Offset(0, 6),
             ),
@@ -210,9 +210,9 @@ class SentimentChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
+        color: color.withOpacity(0.15),
         borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
+        border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

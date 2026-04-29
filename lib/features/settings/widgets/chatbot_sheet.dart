@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/providers/providers.dart';
+import '../../record/screens/voice_call_screen.dart';
 
 /// Bottom sheet AI chatbot coach
 class ChatbotSheet extends ConsumerStatefulWidget {
@@ -58,7 +59,7 @@ class _ChatbotSheetState extends ConsumerState<ChatbotSheet> {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         boxShadow: isDarkMode ? null : [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 20,
             offset: const Offset(0, -4),
           ),
@@ -117,9 +118,9 @@ class _ChatbotSheetState extends ConsumerState<ChatbotSheet> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: AppColors.primaryAccent.withValues(alpha: 0.1),
+                              color: AppColors.primaryAccent.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(4),
-                              border: Border.all(color: AppColors.primaryAccent.withValues(alpha: 0.2)),
+                              border: Border.all(color: AppColors.primaryAccent.withOpacity(0.2)),
                             ),
                             child: const Text(
                               'CARP INFORMED',
@@ -135,6 +136,17 @@ class _ChatbotSheetState extends ConsumerState<ChatbotSheet> {
                       ),
                     ],
                   ),
+                ),
+                IconButton(
+                  onPressed: () {
+                    Navigator.pop(context); // Close sheet first
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const VoiceCallScreen()),
+                    );
+                  },
+                  icon: const Icon(Icons.call_rounded, color: AppColors.primaryAccent),
+                  tooltip: 'Voice Call',
                 ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
@@ -170,7 +182,7 @@ class _ChatbotSheetState extends ConsumerState<ChatbotSheet> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     decoration: BoxDecoration(
-                      color: isDarkMode ? AppColors.glassWhite : AppColors.cardBgLightGray.withValues(alpha: 0.5),
+                      color: isDarkMode ? AppColors.glassWhite : AppColors.cardBgLightGray.withOpacity(0.5),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Row(
@@ -221,7 +233,7 @@ class _ChatbotSheetState extends ConsumerState<ChatbotSheet> {
                         borderSide: BorderSide.none,
                       ),
                       filled: true,
-                      fillColor: isDarkMode ? AppColors.cardBg : AppColors.cardBgLightGray.withValues(alpha: 0.3),
+                      fillColor: isDarkMode ? AppColors.cardBg : AppColors.cardBgLightGray.withOpacity(0.3),
                       contentPadding: const EdgeInsets.symmetric(
                           horizontal: 20, vertical: 12),
                     ),
@@ -285,8 +297,8 @@ class _ChatBubble extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 color: message.isUser
-                    ? AppColors.primaryAccent.withValues(alpha: 0.15)
-                    : (isDarkMode ? AppColors.glassWhite : AppColors.cardBgLightGray.withValues(alpha: 0.4)),
+                    ? AppColors.primaryAccent.withOpacity(0.15)
+                    : (isDarkMode ? AppColors.glassWhite : AppColors.cardBgLightGray.withOpacity(0.4)),
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(18),
                   topRight: const Radius.circular(18),
@@ -295,7 +307,7 @@ class _ChatBubble extends StatelessWidget {
                 ),
                 border: Border.all(
                   color: message.isUser
-                      ? AppColors.primaryAccent.withValues(alpha: 0.2)
+                      ? AppColors.primaryAccent.withOpacity(0.2)
                       : (isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
                 ),
               ),
@@ -361,7 +373,7 @@ class _TypingDotState extends State<_TypingDot>
         margin: const EdgeInsets.symmetric(horizontal: 2),
         decoration: BoxDecoration(
           color: (widget.isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark)
-              .withValues(alpha: _animation.value),
+              .withOpacity(_animation.value),
           shape: BoxShape.circle,
         ),
       ),

@@ -61,7 +61,7 @@ class _LanguageScreenState extends ConsumerState<LanguageScreen> {
               margin: const EdgeInsets.only(bottom: 16),
               decoration: BoxDecoration(
                 color: isSelected 
-                    ? AppColors.primaryAccent.withValues(alpha: 0.1) 
+                    ? AppColors.primaryAccent.withOpacity(0.1) 
                     : (isDarkMode ? AppColors.cardBg : Colors.white),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
@@ -72,7 +72,7 @@ class _LanguageScreenState extends ConsumerState<LanguageScreen> {
                 ),
                 boxShadow: isDarkMode ? null : [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: isSelected ? 0.08 : 0.03),
+                    color: Colors.black.withOpacity(isSelected ? 0.08 : 0.03),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   )

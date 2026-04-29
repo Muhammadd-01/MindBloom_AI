@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:local_auth/local_auth.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/providers/providers.dart';
+import '../../../core/utils/app_notifications.dart';
 
 class AccountSecurityScreen extends ConsumerStatefulWidget {
   const AccountSecurityScreen({super.key});
@@ -96,11 +97,10 @@ class _AccountSecurityScreenState extends ConsumerState<AccountSecurityScreen> {
                       if (controllers.every((c) => c.text.isNotEmpty)) {
                         Navigator.pop(ctx);
                         ref.read(settingsProvider.notifier).toggleTwoFactor();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Two-Factor Authentication enabled successfully!'),
-                            backgroundColor: AppColors.primaryAccent,
-                          ),
+                        AppNotifications.show(
+                          context,
+                          message: 'Two-Factor Authentication enabled successfully!',
+                          type: NotificationType.success,
                         );
                       }
                     },
@@ -117,7 +117,7 @@ class _AccountSecurityScreenState extends ConsumerState<AccountSecurityScreen> {
                         borderSide: const BorderSide(color: AppColors.primaryAccent, width: 2),
                       ),
                       filled: true,
-                      fillColor: isDarkMode ? Colors.white.withValues(alpha: 0.05) : Colors.grey[50],
+                      fillColor: isDarkMode ? Colors.white.withOpacity(0.05) : Colors.grey[50],
                     ),
                     style: TextStyle(
                       fontSize: 18,
@@ -141,11 +141,10 @@ class _AccountSecurityScreenState extends ConsumerState<AccountSecurityScreen> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: AppColors.negative,
-      ),
+    AppNotifications.show(
+      context,
+      message: message,
+      type: NotificationType.error,
     );
   }
 
@@ -244,8 +243,10 @@ class _AccountSecurityScreenState extends ConsumerState<AccountSecurityScreen> {
             Center(
               child: TextButton(
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Your account is secured on this device.')),
+                  AppNotifications.show(
+                    context,
+                    message: 'Your account is secured on this device.',
+                    type: NotificationType.success,
                   );
                 },
                 child: const Text(
@@ -264,9 +265,9 @@ class _AccountSecurityScreenState extends ConsumerState<AccountSecurityScreen> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.primaryAccent.withValues(alpha: 0.1),
+        color: AppColors.primaryAccent.withOpacity(0.1),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.primaryAccent.withValues(alpha: 0.2)),
+        border: Border.all(color: AppColors.primaryAccent.withOpacity(0.2)),
       ),
       child: Column(
         children: [
@@ -315,7 +316,7 @@ class _AccountSecurityScreenState extends ConsumerState<AccountSecurityScreen> {
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: isDarkMode ? AppColors.glassWhite.withValues(alpha: 0.05) : Colors.grey[100],
+            color: isDarkMode ? AppColors.glassWhite.withOpacity(0.05) : Colors.grey[100],
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(icon, color: AppColors.primaryAccent, size: 22),
@@ -354,7 +355,7 @@ class _AccountSecurityScreenState extends ConsumerState<AccountSecurityScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDarkMode ? AppColors.glassWhite.withValues(alpha: 0.05) : Colors.grey[50],
+        color: isDarkMode ? AppColors.glassWhite.withOpacity(0.05) : Colors.grey[50],
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
       ),

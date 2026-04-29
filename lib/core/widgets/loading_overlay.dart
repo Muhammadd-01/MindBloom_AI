@@ -15,7 +15,7 @@ class LoadingOverlay extends StatelessWidget {
     return BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
       child: Container(
-        color: Colors.black.withValues(alpha: 0.4),
+        color: Colors.black.withOpacity(0.4),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -52,7 +52,7 @@ class LoadingOverlay extends StatelessWidget {
               height: 80 + (60 * easedValue),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.primaryAccent.withValues(alpha: 0.05 + (0.1 * easedValue)),
+                color: AppColors.primaryAccent.withOpacity(0.05 + (0.1 * easedValue)),
               ),
             );
           },
@@ -67,10 +67,10 @@ class LoadingOverlay extends StatelessWidget {
               height: 60 + (20 * easedValue),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.primaryAccent.withValues(alpha: 0.2 + (0.3 * easedValue)),
+                color: AppColors.primaryAccent.withOpacity(0.2 + (0.3 * easedValue)),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primaryAccent.withValues(alpha: 0.3 * easedValue),
+                    color: AppColors.primaryAccent.withOpacity(0.3 * easedValue),
                     blurRadius: 20 * easedValue,
                     spreadRadius: 5 * easedValue,
                   ),
@@ -79,7 +79,7 @@ class LoadingOverlay extends StatelessWidget {
               child: Center(
                 child: Icon(
                   Icons.spa, // Nature/Mindfulness icon (lotus)
-                  color: Colors.white.withValues(alpha: 0.8 + (0.2 * easedValue)),
+                  color: Colors.white.withOpacity(0.8 + (0.2 * easedValue)),
                   size: 30 + (5 * easedValue),
                 ),
               ),

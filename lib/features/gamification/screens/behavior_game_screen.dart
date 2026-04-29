@@ -106,7 +106,7 @@ class _BehaviorGameScreenState extends ConsumerState<BehaviorGameScreen> {
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
                   boxShadow: isDarkMode ? null : [
-                    BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20)
+                    BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20)
                   ],
                 ),
                 child: Column(
@@ -140,7 +140,7 @@ class _BehaviorGameScreenState extends ConsumerState<BehaviorGameScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryAccent.withValues(alpha: 0.1),
+                  color: AppColors.primaryAccent.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -176,9 +176,9 @@ class _BehaviorGameScreenState extends ConsumerState<BehaviorGameScreen> {
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: AppColors.positive.withValues(alpha: 0.1),
+                    color: AppColors.positive.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: AppColors.positive.withValues(alpha: 0.2)),
+                    border: Border.all(color: AppColors.positive.withOpacity(0.2)),
                   ),
                   child: Column(
                     children: [

@@ -5,6 +5,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/models/models.dart';
 import '../../../core/services/local_ai_engine.dart';
+import '../../../core/utils/app_notifications.dart';
 
 class AssessmentFlowScreen extends ConsumerStatefulWidget {
   final String type;
@@ -139,7 +140,7 @@ class _AssessmentFlowScreenState extends ConsumerState<AssessmentFlowScreen> {
         _showResultDialog(assessment);
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (mounted) AppNotifications.showError(context, e);
     } finally {
       if (mounted) setState(() => _isAnalyzing = false);
     }
@@ -164,7 +165,7 @@ class _AssessmentFlowScreenState extends ConsumerState<AssessmentFlowScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: AppColors.primaryAccent.withValues(alpha: 0.1),
+                color: AppColors.primaryAccent.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
@@ -326,7 +327,7 @@ class _AssessmentFlowScreenState extends ConsumerState<AssessmentFlowScreen> {
             child: ElevatedButton(
               onPressed: () => _next(optIndex),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white.withValues(alpha: 0.1),
+                backgroundColor: Colors.white.withOpacity(0.1),
                 foregroundColor: Colors.white,
                 elevation: 0,
                 side: const BorderSide(color: Colors.white24),

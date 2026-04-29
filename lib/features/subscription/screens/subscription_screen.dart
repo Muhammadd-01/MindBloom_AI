@@ -130,7 +130,7 @@ class SubscriptionScreen extends ConsumerWidget {
                         'Subscription will renew automatically. Cancel anytime in settings.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: AppColors.textSecondary.withValues(alpha: 0.6),
+                          color: AppColors.textSecondary.withOpacity(0.6),
                           fontSize: 12,
                         ),
                       ),
@@ -167,9 +167,9 @@ class SubscriptionScreen extends ConsumerWidget {
           color: isPopular ? color : (isDarkMode ? Colors.white10 : Colors.black12),
           width: isPopular ? 2 : 1,
         ),
-        color: isDarkMode ? Colors.white.withValues(alpha: 0.05) : Colors.white,
+        color: isDarkMode ? Colors.white.withOpacity(0.05) : Colors.white,
         boxShadow: isPopular 
-          ? [BoxShadow(color: color.withValues(alpha: 0.2), blurRadius: 20, offset: const Offset(0, 8))]
+          ? [BoxShadow(color: color.withOpacity(0.2), blurRadius: 20, offset: const Offset(0, 8))]
           : null,
       ),
       child: ClipRRect(
@@ -281,7 +281,7 @@ class SubscriptionScreen extends ConsumerWidget {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: isCurrent ? Colors.grey.withValues(alpha: 0.2) : color,
+                      backgroundColor: isCurrent ? Colors.grey.withOpacity(0.2) : color,
                       foregroundColor: Colors.white,
                       elevation: 0,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

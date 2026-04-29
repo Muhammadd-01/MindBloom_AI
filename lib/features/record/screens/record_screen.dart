@@ -11,6 +11,7 @@ import '../../../core/providers/providers.dart';
 import '../../../core/models/models.dart';
 import '../../report/screens/report_screen.dart';
 import '../../subscription/screens/subscription_screen.dart';
+import '../../../core/utils/app_notifications.dart';
 
 /// Screen for recording voice, journaling, and mood selection
 class RecordScreen extends ConsumerStatefulWidget {
@@ -134,9 +135,22 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
         if (!_speechEnabled) return;
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Speech recognition is not linked yet. Please perform a full rebuild.')),
+      AppNotifications.show(
+        context, 
+        message: 'Microphone access is required for voice journaling.',
+        type: NotificationType.warning,
       );
+      return;
+    }
+
+    // Check usage limits before starting recording
+    final dashboard = ref.read(dashboardProvider);
+    final user = ref.read(authStateProvider).user;
+    final currentEntries = dashboard.todayReport?.entriesCount ?? 0;
+    final limit = user?.subscriptionTier.dailyLimit ?? SubscriptionTier.seedling.dailyLimit;
+
+    if (!_isRecording && currentEntries >= limit) {
+      _showPremiumPaywall();
       return;
     }
 
@@ -197,8 +211,10 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
     }
 
     if (inputText.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please add some input first')),
+      AppNotifications.show(
+        context,
+        message: 'Please add some input first',
+        type: NotificationType.info,
       );
       return;
     }
@@ -236,70 +252,6 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
     }
   }
 
-  void _showPremiumPaywall() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => Container(
-        height: MediaQuery.of(context).size.height * 0.7,
-        decoration: BoxDecoration(
-          color: AppColors.secondaryBg,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-          gradient: AppColors.darkGradient,
-        ),
-        child: Column(
-          children: [
-            const SizedBox(height: 12),
-            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2))),
-            const SizedBox(height: 40),
-            const Text('🌱', style: TextStyle(fontSize: 64)),
-            const SizedBox(height: 24),
-            const Text(
-              'Daily Limit Reached',
-              style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 40),
-              child: Text(
-                'You\'ve completed your 3 reflections for today. Consistency is great! Upgrade to Bloom or Forest to continue growing without limits.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 16, height: 1.5),
-              ),
-            ),
-            const Spacer(),
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => const SubscriptionScreen()));
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryAccent,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      ),
-                      child: const Text('View Growing Plans', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Continue Free', style: TextStyle(color: Colors.white54)),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -394,7 +346,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primaryAccent.withValues(alpha: 0.3),
+                              color: AppColors.primaryAccent.withOpacity(0.3),
                               blurRadius: 15,
                               offset: const Offset(0, 8),
                             ),
@@ -474,9 +426,9 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
         duration: 200.ms,
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: isPassive ? Colors.green.withValues(alpha: 0.1) : (isDarkMode ? AppColors.cardBg : AppColors.cardBgLightGray.withValues(alpha: 0.3)),
+          color: isPassive ? Colors.green.withOpacity(0.1) : (isDarkMode ? AppColors.cardBg : AppColors.cardBgLightGray.withOpacity(0.3)),
           shape: BoxShape.circle,
-          border: Border.all(color: isPassive ? Colors.green.withValues(alpha: 0.5) : (isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark)),
+          border: Border.all(color: isPassive ? Colors.green.withOpacity(0.5) : (isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark)),
         ),
         child: Icon(
           isPassive ? Icons.visibility_rounded : Icons.visibility_off_rounded,
@@ -489,7 +441,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
 
   Widget _buildNeuralOverlay(bool isDarkMode) {
     return Container(
-      color: Colors.black.withValues(alpha: 0.8),
+      color: Colors.black.withOpacity(0.8),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -513,7 +465,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
                             color: AppColors.primaryAccent,
                             borderRadius: BorderRadius.circular(2),
                             boxShadow: [
-                              BoxShadow(color: AppColors.primaryAccent.withValues(alpha: 0.5), blurRadius: 10),
+                              BoxShadow(color: AppColors.primaryAccent.withOpacity(0.5), blurRadius: 10),
                             ],
                           ),
                         ),
@@ -528,8 +480,8 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
                     height: 80,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppColors.primaryAccent.withValues(alpha: 0.1),
-                      border: Border.all(color: AppColors.primaryAccent.withValues(alpha: 0.3)),
+                      color: AppColors.primaryAccent.withOpacity(0.1),
+                      border: Border.all(color: AppColors.primaryAccent.withOpacity(0.3)),
                     ),
                     child: const Icon(Icons.psychology_rounded, size: 40, color: AppColors.primaryAccent),
                   ).animate(onPlay: (c) => c.repeat(reverse: true))
@@ -552,7 +504,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
               'Decrypting emotional resonance and behavior patterns...',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.6),
+                color: Colors.white.withOpacity(0.6),
                 fontSize: 12,
               ),
             ).animate().fadeIn(delay: 500.ms),
@@ -572,9 +524,9 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
+        border: Border.all(color: color.withOpacity(0.2)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -600,7 +552,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
       height: 50,
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: isDarkMode ? AppColors.cardBg.withValues(alpha: 0.5) : AppColors.cardBgLightGray.withValues(alpha: 0.3),
+        color: isDarkMode ? AppColors.cardBg.withOpacity(0.5) : AppColors.cardBgLightGray.withOpacity(0.3),
         borderRadius: BorderRadius.circular(25),
         border: Border.all(color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
       ),
@@ -619,7 +571,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
                   borderRadius: BorderRadius.circular(21),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primaryAccent.withValues(alpha: 0.3),
+                      color: AppColors.primaryAccent.withOpacity(0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 4),
                     ),
@@ -673,7 +625,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
                 Icon(
                   Icons.lock_rounded, 
                   size: 12, 
-                  color: isDarkMode ? AppColors.secondaryAccent : AppColors.textSecondaryDark.withValues(alpha: 0.5)
+                  color: isDarkMode ? AppColors.secondaryAccent : AppColors.textSecondaryDark.withOpacity(0.5)
                 ),
               ],
             ],
@@ -686,7 +638,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
   Widget _buildJournalInput(bool isDarkMode) {
     return Container(
       decoration: BoxDecoration(
-        color: isDarkMode ? AppColors.cardBg.withValues(alpha: 0.4) : Colors.white,
+        color: isDarkMode ? AppColors.cardBg.withOpacity(0.4) : Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark,
@@ -694,7 +646,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDarkMode ? 0.2 : 0.05),
+            color: Colors.black.withOpacity(isDarkMode ? 0.2 : 0.05),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -718,7 +670,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
                 decoration: InputDecoration(
                   hintText: _prompts[_currentPromptIndex],
                   hintStyle: TextStyle(
-                    color: (isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark).withValues(alpha: 0.4)
+                    color: (isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark).withOpacity(0.4)
                   ),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.all(24),
@@ -732,7 +684,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
-                          color: _vibeColor.withValues(alpha: 0.1),
+                          color: _vibeColor.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Row(
@@ -804,7 +756,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
       ),
       style: TextButton.styleFrom(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        backgroundColor: Colors.white.withValues(alpha: isDarkMode ? 0.05 : 0.5),
+        backgroundColor: Colors.white.withOpacity(isDarkMode ? 0.05 : 0.5),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
@@ -861,12 +813,12 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
       decoration: BoxDecoration(
-        color: isDarkMode ? AppColors.cardBg.withValues(alpha: 0.4) : Colors.white,
+        color: isDarkMode ? AppColors.cardBg.withOpacity(0.4) : Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDarkMode ? 0.2 : 0.05),
+            color: Colors.black.withOpacity(isDarkMode ? 0.2 : 0.05),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -915,7 +867,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
                           color: (_isRecording
                                   ? AppColors.negative
                                   : AppColors.primaryAccent)
-                              .withValues(alpha: 0.4),
+                              .withOpacity(0.4),
                           blurRadius: 24,
                           spreadRadius: _isRecording ? 4 : 0,
                         ),
@@ -939,9 +891,30 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
               fontSize: 12,
               letterSpacing: 2,
               fontWeight: FontWeight.bold,
-              color: _isRecording ? AppColors.negative : (isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark).withValues(alpha: 0.5),
+              color: _isRecording ? AppColors.negative : (isDarkMode ? AppColors.textSecondary : AppColors.textSecondaryDark).withOpacity(0.5),
             ),
           ),
+          
+          if (_isRecording) ...[
+            const SizedBox(height: 32),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.primaryAccent.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.primaryAccent.withOpacity(0.2)),
+              ),
+              child: Text(
+                _recordedText.isEmpty ? "Speak clearly, I'm listening..." : _recordedText,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: isDarkMode ? Colors.white : AppColors.textPrimaryDark,
+                  fontSize: 16,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ).animate().fadeIn().scale(),
+          ],
         ],
       ),
     );
@@ -982,7 +955,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? AppColors.primaryAccent.withValues(alpha: 0.15)
+                      ? AppColors.primaryAccent.withOpacity(0.15)
                       : (isDarkMode ? AppColors.glassWhite : Colors.white),
                   borderRadius: BorderRadius.circular(30),
                   border: Border.all(
@@ -992,7 +965,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
                     width: isSelected ? 1.5 : 1,
                   ),
                   boxShadow: isDarkMode ? null : [
-                    BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 5)
+                    BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 5)
                   ],
                 ),
                 child: Row(
@@ -1032,9 +1005,9 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: AppColors.secondaryAccent.withValues(alpha: 0.1),
+          color: AppColors.secondaryAccent.withOpacity(0.1),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.secondaryAccent.withValues(alpha: 0.2)),
+          border: Border.all(color: AppColors.secondaryAccent.withOpacity(0.2)),
         ),
         child: Row(
           children: [
@@ -1053,6 +1026,39 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
             const Icon(Icons.refresh_rounded, color: AppColors.secondaryAccent, size: 18),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showPremiumPaywall() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.secondaryBg,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Text("Growth Limit Reached", style: TextStyle(color: Colors.white)),
+        content: const Text(
+          "You've reached your daily reflection limit. Upgrade to Bloom for unlimited voice and text expressions.",
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Maybe Later", style: TextStyle(color: Colors.white54)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const SubscriptionScreen()));
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryAccent,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text("Upgrade Now"),
+          ),
+        ],
       ),
     );
   }

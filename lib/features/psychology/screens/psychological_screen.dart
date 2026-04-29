@@ -140,10 +140,10 @@ class PsychologicalScreen extends ConsumerWidget {
         decoration: BoxDecoration(
           color: isDarkMode ? AppColors.glassWhite : Colors.white,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: color.withValues(alpha: 0.3), width: 1.5),
+          border: Border.all(color: color.withOpacity(0.3), width: 1.5),
           boxShadow: [
             BoxShadow(
-              color: color.withValues(alpha: 0.1),
+              color: color.withOpacity(0.1),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -154,7 +154,7 @@ class PsychologicalScreen extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
+                color: color.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Icon(icon, color: color, size: 28),
@@ -195,14 +195,14 @@ class PsychologicalScreen extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDarkMode ? AppColors.cardBg.withValues(alpha: 0.3) : Colors.white.withValues(alpha: 0.5),
+        color: isDarkMode ? AppColors.cardBg.withOpacity(0.3) : Colors.white.withOpacity(0.5),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
       ),
       child: Row(
         children: [
           CircleAvatar(
-            backgroundColor: _getColorForLevel(assessment.resultLevel).withValues(alpha: 0.2),
+            backgroundColor: _getColorForLevel(assessment.resultLevel).withOpacity(0.2),
             radius: 20,
             child: Text(
               assessment.type.toUpperCase(),
@@ -248,13 +248,13 @@ class PsychologicalScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: isDarkMode ? AppColors.glassWhite : Colors.black.withValues(alpha: 0.03),
+        color: isDarkMode ? AppColors.glassWhite : Colors.black.withOpacity(0.03),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
       ),
       child: Column(
         children: [
-          Icon(Icons.history_rounded, size: 48, color: AppColors.textSecondary.withValues(alpha: 0.5)),
+          Icon(Icons.history_rounded, size: 48, color: AppColors.textSecondary.withOpacity(0.5)),
           const SizedBox(height: 16),
           Text(
             'No assessments yet',

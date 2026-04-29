@@ -9,6 +9,7 @@ import '../../../core/models/models.dart';
 import '../../settings/screens/notifications_screen.dart';
 import '../../gamification/screens/behavior_game_screen.dart';
 import 'recent_activity_screen.dart';
+import '../../record/screens/voice_call_screen.dart';
 import '../../../core/services/local_ai_engine.dart';
 
 /// Main dashboard showing positivity score, insights, and weekly trends
@@ -82,12 +83,12 @@ class DashboardScreen extends ConsumerWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.primaryAccent.withValues(alpha: 0.1),
-            AppColors.secondaryAccent.withValues(alpha: 0.05),
+            AppColors.primaryAccent.withOpacity(0.1),
+            AppColors.secondaryAccent.withOpacity(0.05),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primaryAccent.withValues(alpha: 0.2)),
+        border: Border.all(color: AppColors.primaryAccent.withOpacity(0.2)),
       ),
       child: Row(
         children: [
@@ -132,7 +133,7 @@ class DashboardScreen extends ConsumerWidget {
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w900,
-              color: Colors.green.withValues(alpha: 0.7),
+              color: Colors.green.withOpacity(0.7),
               letterSpacing: 1.2,
             ),
           ),
@@ -152,7 +153,7 @@ class DashboardScreen extends ConsumerWidget {
             child: CircularProgressIndicator(
               strokeWidth: 3,
               valueColor: AlwaysStoppedAnimation(
-                AppColors.primaryAccent.withValues(alpha: 0.7),
+                AppColors.primaryAccent.withOpacity(0.7),
               ),
             ),
           ),
@@ -187,7 +188,7 @@ class DashboardScreen extends ConsumerWidget {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.highlight.withValues(alpha: 0.3),
+                  color: AppColors.highlight.withOpacity(0.3),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 )
@@ -227,7 +228,7 @@ class DashboardScreen extends ConsumerWidget {
                     Container(
                       height: 8,
                       decoration: BoxDecoration(
-                        color: isDarkMode ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+                        color: isDarkMode ? Colors.white10 : Colors.black.withOpacity(0.05),
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
@@ -240,7 +241,7 @@ class DashboardScreen extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(10),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.highlight.withValues(alpha: 0.4),
+                            color: AppColors.highlight.withOpacity(0.4),
                             blurRadius: 6,
                           )
                         ],
@@ -327,7 +328,7 @@ class DashboardScreen extends ConsumerWidget {
               border: Border.all(color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
               boxShadow: isDarkMode ? null : [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
+                  color: Colors.black.withOpacity(0.05),
                   blurRadius: 10,
                 )
               ],
@@ -350,13 +351,13 @@ class DashboardScreen extends ConsumerWidget {
         gradient: LinearGradient(
           colors: [
             AppColors.primaryAccent,
-            AppColors.primaryAccent.withValues(alpha: 0.8),
+            AppColors.primaryAccent.withOpacity(0.8),
           ],
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryAccent.withValues(alpha: 0.3),
+            color: AppColors.primaryAccent.withOpacity(0.3),
             blurRadius: 20,
             offset: const Offset(0, 8),
           )
@@ -432,16 +433,16 @@ class DashboardScreen extends ConsumerWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            scoreColor.withValues(alpha: 0.2),
-            isDarkMode ? AppColors.cardBg.withValues(alpha: 0.4) : Colors.white.withValues(alpha: 0.9),
-            scoreColor.withValues(alpha: 0.05),
+            scoreColor.withOpacity(0.2),
+            isDarkMode ? AppColors.cardBg.withOpacity(0.4) : Colors.white.withOpacity(0.9),
+            scoreColor.withOpacity(0.05),
           ],
         ),
         borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: scoreColor.withValues(alpha: 0.3), width: 1.5),
+        border: Border.all(color: scoreColor.withOpacity(0.3), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: scoreColor.withValues(alpha: isDarkMode ? 0.2 : 0.1),
+            color: scoreColor.withOpacity(isDarkMode ? 0.2 : 0.1),
             blurRadius: 30,
             offset: const Offset(0, 10),
           ),
@@ -520,7 +521,7 @@ class DashboardScreen extends ConsumerWidget {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: scoreColor.withValues(alpha: 0.8),
+                            color: scoreColor.withOpacity(0.8),
                             letterSpacing: 1.5,
                           ),
                         ),
@@ -626,7 +627,7 @@ class DashboardScreen extends ConsumerWidget {
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: gradient.colors.map((c) => c.withValues(alpha: 0.1)).toList(),
+              colors: gradient.colors.map((c) => c.withOpacity(0.1)).toList(),
               begin: gradient.begin,
               end: gradient.end,
             ),
@@ -675,7 +676,7 @@ class DashboardScreen extends ConsumerWidget {
         border: Border.all(color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
         boxShadow: isDarkMode ? null : [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
           )
         ],
@@ -698,7 +699,7 @@ class DashboardScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryAccent.withValues(alpha: 0.1),
+                    color: AppColors.primaryAccent.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -799,8 +800,8 @@ class DashboardScreen extends ConsumerWidget {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          AppColors.primaryAccent.withValues(alpha: 0.3),
-                          AppColors.primaryAccent.withValues(alpha: 0.0),
+                          AppColors.primaryAccent.withOpacity(0.3),
+                          AppColors.primaryAccent.withOpacity(0.0),
                         ],
                       ),
                     ),
@@ -834,7 +835,7 @@ class DashboardScreen extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontStyle: FontStyle.italic,
-                    color: isDarkMode ? AppColors.textSecondary.withValues(alpha: 0.7) : AppColors.textSecondaryDark.withValues(alpha: 0.7),
+                    color: isDarkMode ? AppColors.textSecondary.withOpacity(0.7) : AppColors.textSecondaryDark.withOpacity(0.7),
                   ),
                 ),
               ),
@@ -857,12 +858,12 @@ class DashboardScreen extends ConsumerWidget {
             color: isDarkMode ? AppColors.cardBg : Colors.white,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: AppColors.primaryAccent.withValues(alpha: 0.3),
+              color: AppColors.primaryAccent.withOpacity(0.3),
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primaryAccent.withValues(alpha: 0.1),
+                color: AppColors.primaryAccent.withOpacity(0.1),
                 blurRadius: 15,
                 offset: const Offset(0, 5),
               )
@@ -876,7 +877,7 @@ class DashboardScreen extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppColors.primaryAccent.withValues(alpha: 0.1),
+                      color: AppColors.primaryAccent.withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.auto_awesome_rounded, color: AppColors.primaryAccent, size: 20),
@@ -908,6 +909,26 @@ class DashboardScreen extends ConsumerWidget {
                   height: 1.4,
                   color: isDarkMode ? AppColors.textPrimary : AppColors.textPrimaryDark,
                 ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const VoiceCallScreen()),
+                  ),
+                  icon: const Icon(Icons.call_rounded, size: 18),
+                  label: const Text('Call AI Coach', style: TextStyle(fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryAccent,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 0,
+                  ),
+                ).animate(onPlay: (c) => c.repeat(reverse: true))
+                 .shimmer(delay: 3.seconds, duration: 2.seconds, color: Colors.white24),
               ),
             ],
           ),
@@ -1011,7 +1032,7 @@ class DashboardScreen extends ConsumerWidget {
         border: Border.all(color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
         boxShadow: isDarkMode ? null : [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
           )
         ],
@@ -1022,7 +1043,7 @@ class DashboardScreen extends ConsumerWidget {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
+              color: color.withOpacity(0.15),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: color, size: 20),
@@ -1057,7 +1078,7 @@ class DashboardScreen extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
+              color: color.withOpacity(0.15),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(

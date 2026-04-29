@@ -245,8 +245,8 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          AppColors.primaryAccent.withValues(alpha: 0.25),
-                          AppColors.primaryAccent.withValues(alpha: 0.0),
+                          AppColors.primaryAccent.withOpacity(0.25),
+                          AppColors.primaryAccent.withOpacity(0.0),
                         ],
                       ),
                     ),
@@ -370,7 +370,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
                         backDrawRodData: BackgroundBarChartRodData(
                           show: true,
                           toY: 100,
-                          color: isDarkMode ? AppColors.cardBgLight.withValues(alpha: 0.3) : AppColors.cardBgLightGray.withValues(alpha: 0.3),
+                          color: isDarkMode ? AppColors.cardBgLight.withOpacity(0.3) : AppColors.cardBgLightGray.withOpacity(0.3),
                         ),
                       ),
                     ],
@@ -437,7 +437,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
+              color: color.withOpacity(0.12),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
@@ -467,12 +467,12 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.highlight.withValues(alpha: 0.1),
+            AppColors.highlight.withOpacity(0.1),
             AppColors.glassWhite,
           ],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.highlight.withValues(alpha: 0.2)),
+        border: Border.all(color: AppColors.highlight.withOpacity(0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -571,12 +571,12 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
             height: 48,
             decoration: BoxDecoration(
               color: unlocked
-                  ? AppColors.highlight.withValues(alpha: 0.15)
+                  ? AppColors.highlight.withOpacity(0.15)
                   : (isDarkMode ? AppColors.cardBgLight : AppColors.cardBgLightGray),
               shape: BoxShape.circle,
               border: Border.all(
                 color: unlocked
-                    ? AppColors.highlight.withValues(alpha: 0.3)
+                    ? AppColors.highlight.withOpacity(0.3)
                     : (isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
               ),
             ),

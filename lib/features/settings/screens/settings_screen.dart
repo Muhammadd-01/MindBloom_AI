@@ -307,7 +307,7 @@ class SettingsScreen extends ConsumerWidget {
         border: Border.all(color: isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDarkMode ? 0.2 : 0.05),
+            color: Colors.black.withOpacity(isDarkMode ? 0.2 : 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -397,12 +397,12 @@ class SettingsScreen extends ConsumerWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppColors.secondaryAccent.withValues(alpha: 0.15),
+              AppColors.secondaryAccent.withOpacity(0.15),
               isDarkMode ? AppColors.glassWhite : Colors.white,
             ],
           ),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.secondaryAccent.withValues(alpha: 0.2)),
+          border: Border.all(color: AppColors.secondaryAccent.withOpacity(0.2)),
         ),
         child: Row(
           children: [
@@ -455,7 +455,7 @@ class SettingsScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryAccent.withValues(alpha: 0.3),
+            color: AppColors.primaryAccent.withOpacity(0.3),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -469,7 +469,7 @@ class SettingsScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
+                  color: Colors.white.withOpacity(0.2),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.star_rounded, color: Colors.white, size: 20),
@@ -587,7 +587,7 @@ class SettingsScreen extends ConsumerWidget {
           Switch(
             value: value,
             onChanged: (_) => onToggle(),
-            activeTrackColor: AppColors.primaryAccent.withValues(alpha: 0.3),
+            activeTrackColor: AppColors.primaryAccent.withOpacity(0.3),
             activeThumbColor: AppColors.primaryAccent,
             inactiveTrackColor: isDarkMode ? AppColors.cardBgLight : AppColors.cardBgLightGray,
           ),

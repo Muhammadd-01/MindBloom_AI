@@ -106,12 +106,12 @@ class NotificationsScreen extends ConsumerWidget {
           border: Border.all(
             color: notification.isRead 
                 ? (isDarkMode ? AppColors.glassBorder : AppColors.glassBorderDark)
-                : AppColors.primaryAccent.withValues(alpha: 0.5),
+                : AppColors.primaryAccent.withOpacity(0.5),
             width: notification.isRead ? 1 : 1.5,
           ),
           boxShadow: isDarkMode ? null : [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: Colors.black.withOpacity(0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             )
@@ -124,7 +124,7 @@ class NotificationsScreen extends ConsumerWidget {
               leading: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.1),
+                  color: iconColor.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, color: iconColor, size: 24),

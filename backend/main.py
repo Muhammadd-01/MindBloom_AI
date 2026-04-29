@@ -12,6 +12,11 @@ from typing import List, Optional
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+import google.generativeai as genai
+from dotenv import load_dotenv
+
+# Load .env
+load_dotenv()
 
 try:
     from supabase import create_client, Client
@@ -23,6 +28,14 @@ except ImportError:
 # Load from .env or environment variables
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY", "")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+
+# Initialize Gemini
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
+    model = genai.GenerativeModel('gemini-1.5-flash') # Using flash for lower latency in voice/chat
+else:
+    model = None
 
 # Initialize Supabase client (server-side with service_role key)
 supabase: Optional[Client] = None
@@ -62,6 +75,7 @@ class FeedbackItem(BaseModel):
 
 class ChatRequest(BaseModel):
     message: str
+    context: Optional[str] = None
 
 class ChatResponse(BaseModel):
     response: str
@@ -246,41 +260,36 @@ async def get_feedback(request: FeedbackRequest):
 
 @app.post("/chatbot", response_model=ChatResponse)
 async def chatbot(request: ChatRequest):
-    """AI positivity coach chatbot"""
-    msg = request.message.lower()
+    """AI positivity coach chatbot powered by Gemini Pro"""
+    if not model:
+        return ChatResponse(response="I'm currently in offline mode. How can I help you locally?")
     
-    if any(w in msg for w in ['stressed', 'anxious', 'nervous', 'overwhelmed']):
-        response = (
-            "I understand you're feeling stressed. Remember, it's okay to take a step back. "
-            "Try this: Close your eyes, take 5 deep breaths, and focus only on the present moment. "
-            "You've overcome challenges before, and you'll overcome this too. 💪"
-        )
-    elif any(w in msg for w in ['sad', 'down', 'depressed', 'lonely']):
-        response = (
-            "I'm sorry you're feeling this way. Your feelings are valid. "
-            "Sometimes writing down what's bothering you can help process emotions. "
-            "Remember: 'After hardship comes ease.' You're stronger than you think. 🌱"
-        )
-    elif any(w in msg for w in ['happy', 'good', 'great', 'amazing', 'grateful']):
-        response = (
-            "That's wonderful to hear! 🌟 Positive moments deserve to be celebrated. "
-            "Consider sharing your joy with someone close to you — positivity is contagious! "
-            "Keep building on these good feelings."
-        )
-    elif any(w in msg for w in ['angry', 'mad', 'frustrated', 'irritated']):
-        response = (
-            "I can sense some frustration. That's a natural human emotion. "
-            "Before reacting, try the 4-7-8 breathing technique. "
-            "Then ask yourself: 'Will this matter in 5 years?' Often, perspective brings peace. 🕊️"
-        )
-    else:
-        response = (
-            "Thank you for sharing! Every conversation is a step toward self-awareness. "
-            "I'm here to help you build a more positive mindset. "
-            "Would you like to try a quick reflection exercise or talk about your day? 😊"
-        )
+    msg = request.message
+    psych_context = request.context or "No specific psychological history provided."
     
-    return ChatResponse(response=response)
+    system_prompt = f"""
+    You are the 'MindBloom AI Coach', a world-class clinical behavioral psychologist and mindfulness expert.
+    Your mission is to help the user cultivate a positive attitude, build resilience, and process emotions using CBT (Cognitive Behavioral Therapy), DBT (Dialectical Behavior Therapy), and ACT (Acceptance and Commitment Therapy).
+
+    USER CONTEXT:
+    {psych_context}
+
+    INSTRUCTIONS:
+    1. Tone: Empathetic, professional, warm, and highly insightful.
+    2. Framework: Use CBT to identify distortions, DBT for emotional regulation, and Rogerian empathy.
+    3. Formatting: Use clear, concise paragraphs. Use emojis sparingly for warmth.
+    4. Safety: If you detect a crisis (suicide, self-harm), provide immediate compassionate grounding and urge them to seek professional human help.
+    5. Islamic Context (If relevant): If the user mentions faith or Islamic concepts, incorporate supportive Quranic/Hadith wisdom (like Sabr, Shukr, Tawakkul) naturally.
+    
+    Current Message: "{msg}"
+    """
+    
+    try:
+        response = model.generate_content(system_prompt)
+        return ChatResponse(response=response.text)
+    except Exception as e:
+        # Fallback to local logic if Gemini fails
+        return ChatResponse(response="I'm processing a lot of thoughts right now. Take a deep breath with me. What else is on your mind?")
 
 
 # ── Image Upload Endpoints (Supabase Storage) ──

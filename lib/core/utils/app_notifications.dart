@@ -33,15 +33,15 @@ class AppNotifications {
         content: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: const Color(0xFF1E293B).withValues(alpha: 0.95), // Deep slate for premium look
+            color: const Color(0xFF1E293B).withOpacity(0.95), // Deep slate for premium look
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: color.withValues(alpha: 0.3),
+              color: color.withOpacity(0.3),
               width: 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: color.withValues(alpha: 0.1),
+                color: color.withOpacity(0.1),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -52,7 +52,7 @@ class AppNotifications {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
+                  color: color.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, color: color, size: 20),
@@ -75,7 +75,7 @@ class AppNotifications {
                     Text(
                       message,
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.9),
+                        color: Colors.white.withOpacity(0.9),
                         fontSize: title != null ? 12 : 14,
                         height: 1.3,
                       ),
@@ -112,6 +112,16 @@ class AppNotifications {
     }
   }
 
+  /// High-level helper to show errors with friendly messaging
+  static void showError(BuildContext? context, dynamic error) {
+    show(
+      context,
+      message: getFriendlyErrorMessage(error),
+      type: NotificationType.error,
+      title: 'Action Needed',
+    );
+  }
+
   /// Specialized error handler to avoid showing "Code Errors" to the user
   static String getFriendlyErrorMessage(dynamic error) {
     final eStr = error.toString().toLowerCase();
@@ -119,14 +129,26 @@ class AppNotifications {
     if (eStr.contains('socketexception') || eStr.contains('network')) {
       return "MindBloom AI is taking a stroll offline. We'll use smart simulation until your connection returns.";
     }
-    if (eStr.contains('firebaseauth') || eStr.contains('invalid-credential')) {
-      return "Account mismatch detected. Please check your credentials and try again.";
+    if (eStr.contains('user-not-found') || eStr.contains('no-account')) {
+      return "We couldn't find an account with that email. Would you like to create one?";
     }
-    if (eStr.contains('permission-denied')) {
-      return "Secure Access: We're double-checking your permissions. Ensure your account is verified.";
+    if (eStr.contains('wrong-password') || eStr.contains('invalid-credential') || eStr.contains('firebaseauth')) {
+      return "The password or email doesn't seem right. Please double-check and try again.";
+    }
+    if (eStr.contains('email-already-in-use')) {
+      return "This email is already part of the MindBloom family. Try logging in instead.";
+    }
+    if (eStr.contains('weak-password')) {
+      return "For your security, please use a stronger password (at least 6 characters).";
+    }
+    if (eStr.contains('permission-denied') || eStr.contains('permission')) {
+      return "Secure Access: We're double-checking your permissions. Please ensure the app has the necessary access.";
     }
     if (eStr.contains('timeout')) {
       return "The network is a bit slow today. MindBloom AI is patiently waiting for a response.";
+    }
+    if (eStr.contains('too-many-requests')) {
+      return "Slow down a bit! Too many attempts. Please wait a moment before trying again.";
     }
     
     return "Something unexpected happened, but don't worry—our AI is still looking out for you!";

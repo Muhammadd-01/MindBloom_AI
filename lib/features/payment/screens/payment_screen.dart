@@ -153,7 +153,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: Colors.white10),
       ),
@@ -162,7 +162,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.primaryAccent.withValues(alpha: 0.2),
+              color: AppColors.primaryAccent.withOpacity(0.2),
               borderRadius: BorderRadius.circular(16),
             ),
             child: const Icon(Icons.workspace_premium_rounded, color: AppColors.primaryAccent),
@@ -212,7 +212,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primaryAccent : Colors.white.withValues(alpha: 0.05),
+            color: isSelected ? AppColors.primaryAccent : Colors.white.withOpacity(0.05),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: isSelected ? Colors.transparent : Colors.white10),
           ),
@@ -255,7 +255,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.02),
+        color: Colors.white.withOpacity(0.02),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: Colors.white10, style: BorderStyle.none),
       ),
@@ -291,7 +291,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           decoration: InputDecoration(
             prefixIcon: Icon(icon, color: AppColors.primaryAccent, size: 20),
             filled: true,
-            fillColor: Colors.white.withValues(alpha: 0.05),
+            fillColor: Colors.white.withOpacity(0.05),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: const BorderSide(color: Colors.white10),
@@ -312,7 +312,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       decoration: BoxDecoration(
         color: AppColors.secondaryBg,
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 20, offset: const Offset(0, -5))
+          BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 20, offset: const Offset(0, -5))
         ],
       ),
       child: SizedBox(
