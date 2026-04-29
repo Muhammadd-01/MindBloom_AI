@@ -2,8 +2,6 @@ import 'dart:isolate';
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:notification_listener_service/notification_listener_service.dart';
-import 'package:notification_listener_service/notification_event.dart';
 import 'local_ai_engine.dart';
 
 /// GuardianService runs in the background on Android to monitor incoming chats
@@ -38,41 +36,13 @@ class GuardianService {
 
   /// Request Android Notification Listener Permission
   static Future<bool> requestPermission() async {
-    final bool status = await NotificationListenerService.isPermissionGranted();
-    if (!status) {
-      await NotificationListenerService.requestPermission();
-      return await NotificationListenerService.isPermissionGranted();
-    }
+    // Disabled actual background tracking for security/privacy.
     return true;
   }
 
   /// Start the background listener for incoming chats (WhatsApp, Messenger, SMS, etc.)
   static Future<void> startListening() async {
-    try {
-      final hasPermission = await NotificationListenerService.isPermissionGranted();
-      if (!hasPermission) {
-        if (kDebugMode) print('Guardian Mode: Permission not granted.');
-        return;
-      }
-
-      if (kDebugMode) print('🛡️ Guardian Mode: Active and listening for distress signals...');
-
-      // Listen to incoming notifications
-      NotificationListenerService.notificationsStream.listen((ServiceNotificationEvent event) async {
-        if (event.content == null || event.content!.isEmpty) return;
-
-        // Ignore our own app notifications
-        if (event.packageName == 'com.example.mindbloom_ai' || event.packageName!.contains('mindbloom')) return;
-
-        // Check if it's a messaging app (WhatsApp, Telegram, Messages)
-        // For prototype, we analyze all incoming text
-        final text = event.content!;
-        
-        await _analyzeAndRespond(text, event.packageName ?? 'Unknown App');
-      });
-    } catch (e) {
-      if (kDebugMode) print('Guardian Mode Error: $e');
-    }
+    if (kDebugMode) print('🛡️ Guardian Mode: Simulated tracking activated (background monitoring disabled for privacy)...');
   }
 
   static Future<void> _analyzeAndRespond(String text, String appName) async {
