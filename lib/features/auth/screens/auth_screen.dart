@@ -100,6 +100,13 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
     final isDarkMode = ref.watch(settingsProvider).isDarkMode;
     final theme = Theme.of(context);
 
+    // Listen for auth errors and show them as notifications
+    ref.listen<AuthState>(authStateProvider, (previous, next) {
+      if (next.error != null && next.error != previous?.error) {
+        AppNotifications.showError(context, next.error);
+      }
+    });
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       body: Stack(

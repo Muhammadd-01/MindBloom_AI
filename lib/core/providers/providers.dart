@@ -64,10 +64,34 @@ class AuthNotifier extends StateNotifier<AuthState> {
   void _init() {
     _auth.authStateChanges().listen((auth.User? firebaseUser) async {
       if (firebaseUser == null) {
-        state = state.copyWith(isLoggedIn: false, isInitialized: true, isLoading: false);
+        state = state.copyWith(
+          isLoggedIn: false, 
+          isInitialized: true, 
+          isLoading: false,
+          user: null, // Clear user on logout
+        );
       } else {
-        await _fetchAndSetUser(firebaseUser);
-        _updateStreak(firebaseUser.uid);
+        // PERMANENT FIX: Set isLoggedIn to true immediately so the UI stays in the app
+        // while profile is fetching.
+        state = state.copyWith(
+          isLoggedIn: true, 
+          isInitialized: true, 
+          isLoading: true,
+          // If we already have a user in state, keep it during the refresh
+          user: state.user, 
+        );
+        
+        try {
+          await _fetchAndSetUser(firebaseUser);
+          _updateStreak(firebaseUser.uid);
+        } catch (e) {
+          // If profile fetch fails (e.g. network), we still stay logged in
+          // as long as Firebase auth is valid.
+          state = state.copyWith(
+            isLoading: false,
+            // Don't set isInitialized to false, it's already true
+          );
+        }
       }
     });
   }
@@ -199,7 +223,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } catch (e) {
       final message = notify.AppNotifications.getFriendlyErrorMessage(e);
       notify.AppNotifications.show(null, message: message, type: notify.NotificationType.error);
-      state = state.copyWith(error: e.toString(), isInitialized: true, isLoading: false);
+      // IMPORTANT: Keep isLoggedIn as true if we have a firebaseUser, even if profile fetch fails
+      state = state.copyWith(error: e.toString(), isLoading: false);
     }
   }
 
@@ -253,6 +278,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       // state will be updated via authStateChanges listener
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
+      rethrow; // Ensure the UI can catch and show this error
     }
   }
 
